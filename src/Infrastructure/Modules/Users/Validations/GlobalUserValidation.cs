@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Modules.Users.Validations
 {
-    public class GlobalUserValidation : IGlobalValidation
+    public class GlobalUserValidation
     {
     }
 }

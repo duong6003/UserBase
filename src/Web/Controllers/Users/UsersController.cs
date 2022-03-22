@@ -23,7 +23,7 @@ namespace Web.Controllers.Users
         {
             BackgroundJob.Enqueue(() => Console.WriteLine("Simple!"));
             (User? user, string? errorMessage) = await UserService.GetDetailAsync(userId);
-            userId = user.Id;
+            userId = user!.Id;
             if (errorMessage != null)
             {
                 return BadRequest(errorMessage);

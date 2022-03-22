@@ -5,6 +5,7 @@ src/Infrastructure/obj
 src/Infrastructure/bin
 src/Web/obj
 src/Web/bin
+.vscode*
 /.vs
 /.config
 /appsettings.json

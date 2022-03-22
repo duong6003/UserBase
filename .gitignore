@@ -1,0 +1,15 @@
+.sonarqube
+src/Core/obj
+src/Core/bin
+src/Infrastructure/obj
+src/Infrastructure/bin
+src/Web/obj
+src/Web/bin
+/.vs
+/.config
+/appsettings.json
+/Properties/*
+!/Properties/launchSettings.json
+/wwwroot/*
+
+/runtimes

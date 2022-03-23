@@ -1,4 +1,4 @@
-﻿using Infrastructure.Modules.RolePermisstions.Entities;
+﻿using Infrastructure.Modules.Users.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Infrastructure.Modules.RolePermisstions.Configurations
+namespace Infrastructure.Modules.Users.Configurations
 {
 
     public class RolePermissionConfigurations : IEntityTypeConfiguration<RolePermission>

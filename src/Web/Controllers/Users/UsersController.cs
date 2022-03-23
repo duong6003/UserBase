@@ -1,10 +1,9 @@
-﻿using Hangfire;
+﻿using Microsoft.AspNetCore.Mvc;
+using Hangfire;
 using Infrastructure.Definitions;
 using Infrastructure.Modules.Users.Entities;
-using Infrastructure.Modules.Users.Requests;
+using Infrastructure.Modules.Users.Requests.UserRequests;
 using Infrastructure.Modules.Users.Services;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Web.Controllers.Users
 {
@@ -31,20 +30,25 @@ namespace Web.Controllers.Users
             }
             return Ok(user, Messages.Users.GetDetailSuccessfully);
         }
-        [HttpPost]
-        public Task<IActionResult> SignUp(UserSignUpRequest request)
+        [HttpPost("signup")]
+        public async Task<IActionResult> SignUp(UserSignUpRequest request)
         {
-            
+            (User? User, string?ErrorMessage) = await UserService.CreateAccount(request);
+            if(ErrorMessage is not null) return BadRequest(ErrorMessage);
+            return Ok(User, Messages.Users.CreateSuccess);
         }
-        [HttpPost]
+        [HttpPost("signin")]
         public async Task<IActionResult> SignIn(UserSignInRequest request)
         {
             (string AccesToken, string? errorMessage) = await UserService.Authenticate(request);
-            if(!string.IsNullOrEmpty(errorMessage))
-            {
-                return Ok(null!, errorMessage);
-            }
+            if(errorMessage is not null) return BadRequest(errorMessage);
             return Ok(AccesToken, Messages.Users.LoginSuccess);
         }
+        // [HttpPut("{Id}")]
+        // public async Task<IActionResult> Update(UpdateUserRequest request)
+        // {
+        //     if(errorMessage is not null) return BadRequest(errorMessage);
+        //     return Ok(AccesToken, Messages.Users.LoginSuccess);
+        // }
     }
 }

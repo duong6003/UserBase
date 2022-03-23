@@ -1,8 +1,6 @@
 using Core.Bases;
-using Infrastructure.Modules.RolePermisstions.Entities;
-using Infrastructure.Modules.Users.Entities;
 
-namespace Infrastructure.Modules.Roles.Entities
+namespace Infrastructure.Modules.Users.Entities
 {
     public class Role : BaseEntity
     {

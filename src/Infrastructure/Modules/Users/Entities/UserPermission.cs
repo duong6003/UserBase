@@ -1,13 +1,6 @@
 ﻿using Core.Bases;
-using Infrastructure.Modules.Permissions.Entities;
-using Infrastructure.Modules.Users.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Infrastructure.Modules.UserPermissions.Entities
+namespace Infrastructure.Modules.Users.Entities
 {
     public class UserPermission : BaseEntity
     {

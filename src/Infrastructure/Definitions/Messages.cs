@@ -34,6 +34,7 @@ public class Messages
 
 
         public const string LoginSuccess = "Mes.Users.Login.Success";
+        public const string CreateSuccess = "Mes.Users.Create.Success";
         public const string UserNameNotFound = "Mes.Users.UserName.NotFound";
         public const string IdNotFound = "Mes.Users.Id.NotFound";
         public const string GetDetailSuccessfully = "Mes.Users.GetDetail.Successfully";

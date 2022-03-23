@@ -1,8 +1,8 @@
 using FluentValidation;
 using Infrastructure.Definitions;
-using Infrastructure.Modules.Users.Requests;
+using Infrastructure.Modules.Users.Requests.UserRequests;
 
-namespace Infrastructure.Modules.Users.Validations
+namespace Infrastructure.Modules.Users.Validations.UserValidations
 {
     public class ForgotPasswordValidation : AbstractValidator<ForgotPasswordRequest>
     {

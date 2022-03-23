@@ -1,8 +1,4 @@
-﻿using Infrastructure.Modules.Permissions.Entities;
-using Infrastructure.Modules.RolePermisstions.Entities;
-using Infrastructure.Modules.Roles.Entities;
-using Infrastructure.Modules.UserPermissions.Entities;
-using Infrastructure.Modules.Users.Entities;
+﻿using Infrastructure.Modules.Users.Entities;
 using Infrastructure.Persistence.Contexts;
 
 namespace Infrastructure.Persistence.Repositories;

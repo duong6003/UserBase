@@ -1,10 +1,6 @@
 ﻿using Core.Bases;
-using Infrastructure.Modules.Roles.Entities;
-using Infrastructure.Modules.UserPermissions.Entities;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Infrastructure.Modules.Users.Entities;
-
 public class User : BaseEntity
 {
     public string? UserName { get; set; }

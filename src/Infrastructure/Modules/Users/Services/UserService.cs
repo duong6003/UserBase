@@ -1,15 +1,15 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using AutoMapper;
-using Infrastructure.Definitions;
-using Infrastructure.Modules.Permissions.Entities;
-using Infrastructure.Modules.Users.Entities;
-using Infrastructure.Modules.Users.Requests;
-using Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using AutoMapper;
+using Infrastructure.Definitions;
+using Infrastructure.Modules.Users.Entities;
+using Infrastructure.Modules.Users.Requests.UserRequests;
+using Infrastructure.Persistence.Repositories;
+using Core.Utilities;
 
 namespace Infrastructure.Modules.Users.Services;
 
@@ -20,6 +20,8 @@ public interface IUserService
     Task<string> GenerateAccessToken(User user);
     Task<string> GenerateRefreshToken();
     Task<(string AccesToken, string? ErrorMessage)> Authenticate(UserSignInRequest request);
+    Task<(User? User, string? ErrorMessage)> CreateAccount(UserSignUpRequest request);
+    //Task<(User? User, string? ErrorMessage)> UpdateAccount(UpdateUserRequest request);
 }
 
 public class UserService : IUserService
@@ -105,24 +107,26 @@ public class UserService : IUserService
             DateTime.UtcNow.AddDays(double.Parse(Configuration["RefreshTokenExpiredTime"]))
             );
     }
-    private string HashPassword(string password)
-    {
-        return BCrypt.Net.BCrypt.HashPassword(password);
-    }
     public async Task<(string AccesToken, string? ErrorMessage)> Authenticate(UserSignInRequest request)
     {
-        User? user = await RepositoryWrapper.Users.FindByCondition(x=> x.UserName == request.UserName).FirstOrDefaultAsync()!;
-        if(user == null) return (null!, Messages.Users.UserNameNotFound);
+        User? user = await RepositoryWrapper.Users.FindByCondition(x => x.UserName == request.UserName).FirstOrDefaultAsync()!;
+        if (user == null) return (null!, Messages.Users.UserNameNotFound);
 
-        bool success = BCrypt.Net.BCrypt.Verify(HashPassword(request.Password!), user.Password);
-        if(!success) return (null!, Messages.Users.PasswordNotMatch);
-        
+        bool success = BCrypt.Net.BCrypt.Verify(request.Password!.HashPassword(), user.Password);
+        if (!success) return (null!, Messages.Users.PasswordNotMatch);
+
         string token = await GenerateAccessToken(user);
 
         return (token, null!);
     }
-    public Task<(User User, string? ErrorMessage)> RegisterAccount(UserSignUpRequest request)
+    public async Task<(User? User, string? ErrorMessage)> CreateAccount(UserSignUpRequest request)
     {
         User? user = Mapper.Map<User>(request);
+        await RepositoryWrapper.Users.AddAsync(user);
+        return (user, null);
     }
+    // public async Task<(User? User, string? ErrorMessage)> UpdateAccount(UpdateUserRequest request)
+    // {
+    //     await RepositoryWrapper.Users.UpdateAsync(user);
+    // }
 }

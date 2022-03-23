@@ -1,4 +1,4 @@
-﻿using Infrastructure.Modules.UserPermissions.Entities;
+﻿using Infrastructure.Modules.Users.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Infrastructure.Modules.UserPermissions.Configurations
+namespace Infrastructure.Modules.Users.Configurations
 {
     public class UserPermissionConfigurations : IEntityTypeConfiguration<UserPermission>
     {

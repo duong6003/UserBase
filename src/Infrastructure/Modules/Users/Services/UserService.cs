@@ -67,7 +67,6 @@ public class UserService : IUserService
     public async Task<string> GenerateAccessToken(User user)
     {
         List<string> roles = new();
-        var rolePermisstions = await RepositoryWrapper.RolePermissions.FindByCondition(x => x.RoleId == user.RoleId).Include(x => x.Permission).ToListAsync();
         var userPermissions = await RepositoryWrapper.UserPermissions.FindByCondition(x => x.UserId == user.Id).Include(x => x.Permission).ToListAsync();
 
         List<Claim> claims = new()
@@ -79,7 +78,6 @@ public class UserService : IUserService
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
-        rolePermisstions.ForEach(x => roles.Add(x.Permission!.Code!));
         userPermissions.ForEach(x => roles.Add(x.Permission!.Code!));
 
         foreach (string role in roles)

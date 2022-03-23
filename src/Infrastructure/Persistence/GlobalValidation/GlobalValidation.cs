@@ -4,51 +4,53 @@ using Core.Common.Validation;
 using FluentValidation;
 using FluentValidation.Validators;
 using Infrastructure.Persistence.Contexts;
+using Infrastructure.Persistence.Repositories;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
+using static Infrastructure.Definitions.Messages;
 
 namespace Infrastructure.Persistence.GlobalValidation
 {
-    public static class FormFileExtention
+    public static class CommonValidationExtention
     {
-        public static bool IsValidContentType(this IFormFile file, string contentType)
+
+        public static bool IsValidFile(this IFormFile file, string contentType)
         {
             return file.ContentType.Contains(contentType);
         }
-
-        public static IRuleBuilderOptions<T, IFormFile> IsValidMediaType<T>(this IRuleBuilder<T, IFormFile> ruleBuilder, string contentType)
+        public static IRuleBuilderOptions<T, IFormFile?> IsValidFile<T>(this IRuleBuilder<T, IFormFile?> ruleBuilder, string contentType)
         {
-            return ruleBuilder.Must(x => x.IsValidContentType(contentType)).WithMessage("Mediatype.Invalid");
+            return ruleBuilder.Must(x => x!.IsValidFile(contentType)).WithMessage(Files.InValid);
         }
-
+        public static IRuleBuilderOptions<T, IFormFile?> IsValidSize<T>(this IRuleBuilder<T, IFormFile?> ruleBuilder, int size)
+        {
+            return ruleBuilder.Must(x => x!.Length <= size).WithMessage(Files.OverSize);
+        }
     }
-    public class ValidMediaTypeValidator<T, TProperty> : PropertyValidator<T, TProperty>
-    {
-        private string _mediatype;
-        public ValidMediaTypeValidator(string mediatype)
-        {
-            _mediatype = mediatype;
-        }
-        public override string Name => "ValidMediaTypeValidator";
+    // public class ValidMediaTypeValidator<T, TProperty> : PropertyValidator<T, TProperty>
+    // {
+    //     private string _mediatype;
+    //     public ValidMediaTypeValidator(string mediatype)
+    //     {
+    //         _mediatype = mediatype;
+    //     }
+    //     public override string Name => "ValidMediaTypeValidator";
 
-        public override bool IsValid(ValidationContext<T> context, TProperty value)
-        {
-            IFormFile file = (IFormFile)value!;
-            return file.IsValidContentType(_mediatype);
-        }
+    //     public override bool IsValid(ValidationContext<T> context, TProperty value)
+    //     {
+    //         IFormFile file = (IFormFile)value!;
+    //         return file.IsValidContentType(_mediatype);
+    //     }
 
-        protected override string GetDefaultMessageTemplate(string errorCode)
-          => "'{PropertyName}' is invalid content type";
-    }
-    public class GlobalValidation<TEntity, Tid> : IGlobalValidation<TEntity, Tid>, IDisposable where TEntity : BaseEntity
+    //     protected override string GetDefaultMessageTemplate(string errorCode)
+    //       => "'{PropertyName}' is invalid content type";
+    // }
+    public class GlobalValidation<TEntity> : RepositoryBase<TEntity>, IGlobalValidation<TEntity>, IDisposable where TEntity : class
     {
         private readonly ApplicationDbContext _dbContext;
-        private readonly IActionContextAccessor _actionContextAccessor;
 
-        public GlobalValidation(ApplicationDbContext dbContext, IActionContextAccessor actionContextAccessor)
+        public GlobalValidation(ApplicationDbContext dbContext) : base(dbContext)
         {
             _dbContext = dbContext;
-            _actionContextAccessor = actionContextAccessor;
         }
 
         public void Dispose()
@@ -59,10 +61,15 @@ namespace Infrastructure.Persistence.GlobalValidation
             }
         }
 
-        public bool IsExistId(Tid id)
+        public async Task<bool> IsExistId<Tid>(Tid id, CancellationToken cancellationToken = default) where Tid : notnull
         {
-            IQueryable<TEntity> items = _dbContext.Set<TEntity>();
-            return items.Any(x => x.Id.Equals(id));
+            var entity = await GetByIdAsync(id, cancellationToken);
+            return entity != null;
+        }
+        public bool IsExistProperty(Expression<Func<TEntity, bool>> expression)
+        {
+            return FindByCondition(expression).Any();
         }
     }
+
 }

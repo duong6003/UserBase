@@ -1,9 +1,11 @@
-﻿using Hangfire;
+﻿using Core.Common.Validation;
+using Hangfire;
 using Hangfire.MySql;
 using HangfireBasicAuthenticationFilter;
 using Infrastructure.Mappings;
 using Infrastructure.Modules.Users.Services;
 using Infrastructure.Persistence.Contexts;
+using Infrastructure.Persistence.GlobalValidation;
 using Infrastructure.Persistence.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -33,7 +35,7 @@ public static class Startup
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
 
         services.AddAutoMapper(typeof(MappingProfile));
-
+        services.AddScoped(typeof(IGlobalValidation<>), typeof(GlobalValidation<>));
         #region Add Module Services
         services.AddScoped<IUserService, UserService>();
         #endregion

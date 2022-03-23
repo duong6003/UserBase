@@ -1,6 +1,7 @@
 ﻿using Hangfire;
 using Infrastructure.Definitions;
 using Infrastructure.Modules.Users.Entities;
+using Infrastructure.Modules.Users.Requests;
 using Infrastructure.Modules.Users.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,6 +30,21 @@ namespace Web.Controllers.Users
                 return BadRequest(errorMessage);
             }
             return Ok(user, Messages.Users.GetDetailSuccessfully);
+        }
+        [HttpPost]
+        public Task<IActionResult> SignUp(UserSignUpRequest request)
+        {
+            
+        }
+        [HttpPost]
+        public async Task<IActionResult> SignIn(UserSignInRequest request)
+        {
+            (string AccesToken, string? errorMessage) = await UserService.Authenticate(request);
+            if(!string.IsNullOrEmpty(errorMessage))
+            {
+                return Ok(null!, errorMessage);
+            }
+            return Ok(AccesToken, Messages.Users.LoginSuccess);
         }
     }
 }

@@ -1,11 +1,14 @@
 ﻿using AutoMapper;
+using Infrastructure.Modules.Users.Entities;
+using Infrastructure.Modules.Users.Requests;
 
 namespace Infrastructure.Mappings;
 
-internal class MappingProfile : Profile
+public class MappingProfile : Profile
 {
-    internal MappingProfile()
+    public MappingProfile()
     {
-
+        CreateMap<UserSignUpRequest, User>()
+            .ForMember(dest=> dest.Password, opt => opt.PreCondition(x=> x.));
     }
 }

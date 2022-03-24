@@ -7,11 +7,11 @@ using Infrastructure.Persistence.Repositories;
 
 namespace Infrastructure.Modules.Users.Validations.UserValidations
 {
-    public class UserSignUpValidation : AbstractValidator<UserSignUpRequest>
+    public class UserUpdateValidation : AbstractValidator<UserUpdateRequest>
     {
         private readonly IRepositoryWrapper RepositoryWrapper;
 
-        public UserSignUpValidation(IRepositoryWrapper repositoryWrapper)
+        public UserUpdateValidation(IRepositoryWrapper repositoryWrapper)
         {
             RepositoryWrapper = repositoryWrapper;
             RuleFor(x => x.UserName)
@@ -30,7 +30,7 @@ namespace Infrastructure.Modules.Users.Validations.UserValidations
             RuleFor(x => x.RoleId)
                 .NotNull().WithMessage(Messages.Roles.IdIsRequired)
                 .MustAsync( async(roleId, cancellationToken) => await RepositoryWrapper.Roles.IsExistId(roleId)).WithMessage(Messages.Roles.IdNotFound);
-            RuleForEach(x => x.UserPermissions).Cascade(CascadeMode.Stop).SetValidator(new CreateUserPermissionValidation(RepositoryWrapper));
+            RuleForEach(x => x.UserPermissions).Cascade(CascadeMode.Stop).SetValidator(new UpdateUserPermissionValidation(RepositoryWrapper));
         }
     }
 }

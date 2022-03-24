@@ -49,36 +49,36 @@ namespace Infrastructure.Persistence.GlobalValidation
     //       => "'{PropertyName}' is invalid content type";
     // }
     
-    public interface IGlobalValidation<TEntity> where TEntity : class
-    {
-        Task<bool> IsExistId<TId>(TId id, CancellationToken cancellationToken = default) where TId : notnull;
-        bool IsExistProperty(Expression<Func<TEntity, bool>> expression);
-    }
-    public class GlobalValidation<TEntity> : RepositoryBase<TEntity>, IGlobalValidation<TEntity>, IDisposable where TEntity : class
-    {
-        private readonly ApplicationDbContext _dbContext;
-        public GlobalValidation(ApplicationDbContext dbContext) : base(dbContext)
-        {
-            _dbContext = dbContext;
-        }
+    // public interface IGlobalValidation<TEntity> where TEntity : class
+    // {
+    //     Task<bool> IsExistId<TId>(TId id, CancellationToken cancellationToken = default) where TId : notnull;
+    //     bool IsExistProperty(Expression<Func<TEntity, bool>> expression);
+    // }
+    // public class GlobalValidation<TEntity> : RepositoryBase<TEntity>, IGlobalValidation<TEntity>, IDisposable where TEntity : BaseEntity
+    // {
+    //     private readonly ApplicationDbContext _dbContext;
+    //     public GlobalValidation(ApplicationDbContext dbContext) : base(dbContext)
+    //     {
+    //         _dbContext = dbContext;
+    //     }
 
-        public void Dispose()
-        {
-            if (_dbContext != null)
-            {
-                _dbContext.Dispose();
-            }
-        }
+    //     public void Dispose()
+    //     {
+    //         if (_dbContext != null)
+    //         {
+    //             _dbContext.Dispose();
+    //         }
+    //     }
 
-        // public async Task<bool> IsExistId<Tid>(Tid id, CancellationToken cancellationToken = default) where Tid : notnull
-        // {
-        //     var entity = await GetByIdAsync(id, cancellationToken);
-        //     return entity != null;
-        // }
-        // public bool IsExistProperty(Expression<Func<TEntity, bool>> expression)
-        // {
-        //     return FindByCondition(expression).Any();
-        // }
-    }
+    //     // public async Task<bool> IsExistId<Tid>(Tid id, CancellationToken cancellationToken = default) where Tid : notnull
+    //     // {
+    //     //     var entity = await GetByIdAsync(id, cancellationToken);
+    //     //     return entity != null;
+    //     // }
+    //     // public bool IsExistProperty(Expression<Func<TEntity, bool>> expression)
+    //     // {
+    //     //     return FindByCondition(expression).Any();
+    //     // }
+    // }
 
 }

@@ -1,6 +1,6 @@
 namespace Infrastructure.Modules.Users.Requests.UserPermissionRequests
 {
-    public class CreateUserPermission
+    public class CreateUserPermissionRequest
     {
          public Guid UserId { get; set; }
         public Guid PermissionId { get; set; }

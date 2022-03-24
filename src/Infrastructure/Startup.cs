@@ -33,7 +33,6 @@ public static class Startup
         ));
 
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
-        services.AddScoped<IGlobalValidationWrapper, GlobalValidationWrapper>();
 
         services.AddAutoMapper(typeof(MappingProfile));
         #region Add Module Services

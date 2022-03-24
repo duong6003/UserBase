@@ -5,6 +5,7 @@ using Infrastructure.Modules.Users.Entities;
 using Infrastructure.Modules.Users.Requests.UserRequests;
 using Infrastructure.Modules.Users.Services;
 using Microsoft.AspNetCore.Authorization;
+using System.Text.Encodings.Web;
 
 namespace Web.Controllers.Users
 {
@@ -53,5 +54,38 @@ namespace Web.Controllers.Users
         //     if(errorMessage is not null) return BadRequest(errorMessage);
         //     return Ok(AccesToken, Messages.Users.LoginSuccess);
         // }
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> ConfirmEmailAsync(Guid userId, string token)
+        {
+            return Ok();
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
+        {
+            return Ok();
+        }
+        private string EmailConfirmationLink(IUrlHelper urlHelper, Guid userId, string code, string scheme)
+        {
+            return urlHelper.Action(
+                action: nameof(UsersController.ConfirmEmailAsync),
+                controller: "Users",
+                values: new { userId, code },
+                protocol: scheme)!;
+        }
+        public string ResetPasswordCallbackLink(IUrlHelper urlHelper, Guid userId, string code, string scheme)
+        {
+            return urlHelper.Action(
+                action: nameof(UsersController.ResetPassword),
+                controller: "Users",
+                values: new { userId, code },
+                protocol: scheme);
+        }
+        public Task SendEmailConfirmationAsync(IEmailSender emailSender, string email, string link)
+        {
+            return emailSender.SendEmailAsync(email, "Confirm your email",
+                $"Please confirm your account by clicking this link: <a href='{HtmlEncoder.Default.Encode(link)}'>click here</a>");
+        }
     }
 }

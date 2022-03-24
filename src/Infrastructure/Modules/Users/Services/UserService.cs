@@ -11,6 +11,8 @@ using Infrastructure.Modules.Users.Requests.UserRequests;
 using Infrastructure.Persistence.Repositories;
 using Core.Utilities;
 using Envelop.App.Ultilities;
+using Infrastructure.Persistence.Definitions;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Infrastructure.Modules.Users.Services;
 
@@ -20,24 +22,27 @@ public interface IUserService
     Task<(User? User, string? ErrorMessage)> GetDetailAsync(Guid userId);
     Task<(PaginationResponse<User>, string? ErrorMessage)> GetAllAsync(PaginationRequest request);
     Task<(User? User, string? ErrorMessage)> CreateAsync(UserSignUpRequest request);
-    Task<(User? User, string? ErrorMessage)> UpdateAsync(User user, UpdateUserRequest request);
+    Task<(User? User, string? ErrorMessage)> UpdateAsync(User user, UserUpdateRequest request);
     Task<(User? User, string? ErrorMessage)> DeleteAsync(User user);
     Task<string> GenerateAccessTokenAsync(User user);
     Task<string> GenerateRefreshTokenAsync();
     Task<(string AccesToken, string? ErrorMessage)> AuthenticateAsync(UserSignInRequest request);
+    string GenerateEmailConfirmationTokenAsync(User user);
 }
 
 public class UserService : IUserService
 {
     private readonly IRepositoryWrapper RepositoryWrapper;
     private readonly IMapper Mapper;
+    private readonly IUrlHelper UrlHelper;
     private readonly IConfiguration Configuration;
 
-    public UserService(IConfiguration configuration, IRepositoryWrapper repositoryWrapper, IMapper mapper)
+    public UserService(IConfiguration configuration, IRepositoryWrapper repositoryWrapper, IMapper mapper, IUrlHelper urlHelper)
     {
         RepositoryWrapper = repositoryWrapper;
         Configuration = configuration;
         Mapper = mapper;
+        UrlHelper = urlHelper;
     }
 
     public async Task<User?> GetByIdAsync(Guid userId)
@@ -115,40 +120,78 @@ public class UserService : IUserService
         bool success = BCrypt.Net.BCrypt.Verify(request.Password!.HashPassword(), user.Password);
         if (!success) return (null!, Messages.Users.PasswordNotMatch);
 
+        if(user.Status == (byte)Status.InActive) return (null!, Messages.Users.UserIsLocked);
+
         string token = await GenerateAccessTokenAsync(user);
 
         return (token, null!);
     }
     public async Task<(User? User, string? ErrorMessage)> CreateAsync(UserSignUpRequest request)
     {
+        List<RolePermission> rolePermissions = await RepositoryWrapper.RolePermissions.FindByCondition(x=> x.RoleId == request.RoleId).ToListAsync();
         User? user = Mapper.Map<User>(request);
+        foreach(RolePermission rolePermission in rolePermissions)
+        {
+            user.UserPermissions!.Add(new UserPermission(){
+                UserId = user.Id,
+                PermissionId = rolePermission.PermissionId
+            });
+        }
         await RepositoryWrapper.Users.AddAsync(user);
         return (user, null);
     }
 
     public async Task<(PaginationResponse<User>, string? ErrorMessage)> GetAllAsync(PaginationRequest request)
     {
-         IQueryable<User>? users = RepositoryWrapper.Users.FindByCondition(x =>
-       (
-           string.IsNullOrEmpty(request.SearchContent)
-           || x.UserName!.ToLower().Contains(request.SearchContent!.ToLower())
-           || x.EmailAddress!.ToLower().Contains(request.SearchContent!.ToLower())
-       ));
+        IQueryable<User>? users = RepositoryWrapper.Users.FindByCondition(x =>
+      (
+          string.IsNullOrEmpty(request.SearchContent)
+          || x.UserName!.ToLower().Contains(request.SearchContent!.ToLower())
+          || x.EmailAddress!.ToLower().Contains(request.SearchContent!.ToLower())
+      ));
         users = SortUtility<User>.ApplySort(users, request.OrderByQuery!);
         PaginationUtility<User>? data = await PaginationUtility<User>.ToPagedListAsync(users, request.PageNumber, request.PageSize);
         return (PaginationResponse<User>.PaginationInfo(data, data.PageInfo), Messages.Users.GetAllSuccessfully);
     }
 
-    public async Task<(User? User, string? ErrorMessage)> UpdateAsync(User user, UpdateUserRequest request)
+    public async Task<(User? User, string? ErrorMessage)> UpdateAsync(User user, UserUpdateRequest request)
     {
-        Mapper.Map(request, user);
-        await RepositoryWrapper.Users.UpdateAsync(user);
-        return (user, Messages.Users.UpdateUserSuccessfully);
+        if(user.RoleId != request.RoleId)
+        User?  newUser = Mapper.Map<UserUpdateRequest, User>(request);
+        //Get User permisstion Detail
+        ICollection<UserPermission>? newUserPermissions = newUser.UserPermissions;
+
+        //new User permissions added
+        List<UserPermission>? addedUserPermissions = newUserPermissions!.Where(x => x.Id == Guid.Empty || x.Id == null).ToList();
+
+        //get updated User permissions
+        List<UserPermission>? updatedUserPermissions = newUserPermissions!.Where(x => x.Id != Guid.Empty || x.Id == null).ToList();
+
+        //Existed UserPermissions
+        List<UserPermission>? existedUserPermissions = RepositoryWrapper.UserPermissions.FindByCondition(x => x.UserId == user.Id).ToList();
+
+        //Clear db
+        newUser.UserPermissions!.Clear();
+
+        foreach (UserPermission? userPermission in updatedUserPermissions)
+        {
+            await RepositoryWrapper.UserPermissions.UpdateAsync(userPermission);
+        }
+
+        foreach (UserPermission? userPermission in addedUserPermissions)
+        {
+            await RepositoryWrapper.UserPermissions.AddAsync(userPermission);
+        }
+
+        await RepositoryWrapper.UserPermissions.DeleteRangeAsync(existedUserPermissions.Except(updatedUserPermissions));
+
+        await RepositoryWrapper.Users.UpdateAsync(newUser);
+        return (newUser, null);
     }
 
     public async Task<(User? User, string? ErrorMessage)> DeleteAsync(User user)
     {
-         await RepositoryWrapper.Users.DeleteAsync(user);
+        await RepositoryWrapper.Users.DeleteAsync(user);
         return (user, Messages.Users.DeleteUserSuccessfully);
     }
 }

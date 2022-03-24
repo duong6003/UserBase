@@ -15,9 +15,9 @@ public class MappingProfile : Profile
         CreateMap<UserSignUpRequest, User>()
             .ForMember(dest => dest.Password, opt => opt.MapFrom((src, dest) => dest.Password = src.Password!.HashPassword()))
             .ForMember(dest => dest.Status, opt => opt.MapFrom((src, dest) => dest.Status = (byte)Status.Active));
+        CreateMap<UserUpdateRequest, User>();
         // role
         CreateMap<CreateRoleRequest,Role>();
-        CreateMap<UpdateRoleRequest,Role>()
-            .ForMember(dest => dest.RolePermissions, opt => opt.Ignore());
+        CreateMap<UpdateRoleRequest,Role>();
     }
 }

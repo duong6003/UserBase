@@ -43,6 +43,7 @@ public class Messages
 
         public const string LoginSuccess = "Mes.Users.Login.Success";
         public const string UserNameNotFound = "Mes.Users.UserName.NotFound";
+        public const string UserIsLocked = "Mes.Users.IsLocked";
         public const string GetDetailSuccessfully = "Mes.Users.GetDetail.Successfully";
     }
     [DisplayName("Roles")]

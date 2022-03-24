@@ -14,7 +14,7 @@ namespace Infrastructure.Modules.Users.Validations.UserValidations
             RepositoryWrapper = repositoryWrapper;
         
             RuleFor(x => x.UserName)
-                .Must((req, userName) => RepositoryWrapper.Users.IsExistProperty(x=> x.UserName == userName)).WithMessage(Messages.Users.UserNameNotExist);
+                .MustAsync(async(userName, cancellationToken) => await RepositoryWrapper.Users.IsExistProperty(x=> x.UserName == userName)).WithMessage(Messages.Users.UserNameNotExist);
         }
     }
 }

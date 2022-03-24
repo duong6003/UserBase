@@ -5,7 +5,7 @@ using Infrastructure.Persistence.Repositories;
 
 namespace Infrastructure.Modules.Users.Validations.UserPermissionValidations
 {
-    public class CreateUserPermissionValidation : AbstractValidator<CreateUserPermission>
+    public class CreateUserPermissionValidation : AbstractValidator<CreateUserPermissionRequest>
     {
         private readonly IRepositoryWrapper RepositoryWrapper;
 

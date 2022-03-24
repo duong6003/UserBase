@@ -16,11 +16,11 @@ namespace Infrastructure.Modules.Users.Validations.RolePermissionValidations
             RepositoryWrapper = repositoryWrapper;
             RuleFor(x => x.RoleId)
                 .NotNull().WithMessage(Messages.Roles.IdIsRequired)
-                .Must(roleId => RepositoryWrapper.RolePermissions!.IsExistProperty(x => x.RoleId == roleId))
+                .MustAsync(async(roleId, cancellationToken)=> await RepositoryWrapper.RolePermissions!.IsExistId(roleId))
                 .WithMessage(Messages.Roles.IdNotFound);
             RuleFor(x => x.PermissionId)
                 .NotNull().WithMessage(Messages.Permissions.IdIsRequired)
-                .Must(permissionId => RepositoryWrapper.Permissions!.IsExistProperty(x => x.Id == permissionId))
+                .MustAsync(async(permissionId, cancellationToken) => await RepositoryWrapper.Permissions!.IsExistId(permissionId))
                 .WithMessage(Messages.Permissions.IdNotFound);
         }
     }

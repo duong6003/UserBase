@@ -73,10 +73,10 @@ namespace Infrastructure.Modules.Users.Services
             ICollection<RolePermission>? newRolePermissions = newRole.RolePermissions;
 
             //new role permissions added
-            List<RolePermission>? addedRolePermissions = newRolePermissions!.Where(x => x.Id == default).ToList();
+            List<RolePermission>? addedRolePermissions = newRolePermissions!.Where(x => x.Id == Guid.Empty || x.Id == null).ToList();
 
             //get updated role permissions
-            List<RolePermission>? updatedRolePermissions = newRolePermissions!.Where(x => x.Id != default).ToList();
+            List<RolePermission>? updatedRolePermissions = newRolePermissions!.Where(x => x.Id != Guid.Empty || x.Id == null).ToList();
             
             //Existed RolePermissions
             var existedRolePermissions = RepositoryWrapper.RolePermissions.FindByCondition(x => x.RoleId == role.Id).ToList();
@@ -97,7 +97,7 @@ namespace Infrastructure.Modules.Users.Services
             await RepositoryWrapper.RolePermissions.DeleteRangeAsync(existedRolePermissions.Except(updatedRolePermissions));
 
             await RepositoryWrapper.Roles.UpdateAsync(newRole);
-            return(role, null);
+            return(newRole, null);
         }
     }
 }

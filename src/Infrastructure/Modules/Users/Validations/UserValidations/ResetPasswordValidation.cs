@@ -13,7 +13,7 @@ namespace Infrastructure.Modules.Users.Validations.UserValidations
         {
             RepositoryWrapper = repositoryWrapper;
             RuleFor(x => x.UserName)
-                .Must((req, userName) => RepositoryWrapper.Users.IsExistProperty(x => x.UserName == userName)).WithMessage(Messages.Users.UserNameNotExist)
+                .MustAsync(async(userName, cancellationToken) => await RepositoryWrapper.Users.IsExistProperty(x => x.UserName == userName)).WithMessage(Messages.Users.UserNameNotExist)
                 .Matches(@"^(?=[a-zA-Z])[-\w.]{0,23}([a-zA-Z\d]|(?<![-.])_)$").WithMessage(Messages.Users.UserNameInvalid)
                 .MaximumLength(50).WithMessage(Messages.Users.UserNameInValidLength + "{MaxLength}");
             RuleFor(x => x.Password)

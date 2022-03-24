@@ -1,4 +1,5 @@
-﻿using Infrastructure.Persistence.Contexts;
+﻿using Core.Bases;
+using Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
@@ -23,23 +24,22 @@ public interface IRepositoryBase<T> where T : class
     IQueryable<T> FindAll(bool isAsNoTracking = default);
 
     IQueryable<T> FindByCondition(Expression<Func<T, bool>> expression, bool isAsNoTracking = default);
-    Task<bool> IsExistId<TId>(TId? id, CancellationToken cancellationToken = default) where TId : notnull;
-    bool IsExistProperty(Expression<Func<T, bool>> expression);
+    Task<bool> IsExistId<TId>(TId? id, CancellationToken cancellationToken = default);
+    Task<bool> IsExistProperty(Expression<Func<T, bool>> expression);
 }
 
-public class RepositoryBase<T> : IRepositoryBase<T> where T : class
+public class RepositoryBase<T> : IRepositoryBase<T> where T : BaseEntity
 {
     private readonly ApplicationDbContext DbContext;
 
     public RepositoryBase(ApplicationDbContext dbContext) => DbContext = dbContext;
-    public async Task<bool> IsExistId<Tid>(Tid? id, CancellationToken cancellationToken = default) where Tid : notnull
+    public async Task<bool> IsExistId<Tid>(Tid? id, CancellationToken cancellationToken = default)
     {
-        var entity = await GetByIdAsync(id, cancellationToken);
-        return entity != null;
+        return await DbContext.Set<T>().AnyAsync(x=> x.Id.Equals(id));
     }
-    public bool IsExistProperty(Expression<Func<T, bool>> expression)
+    public async Task<bool> IsExistProperty(Expression<Func<T, bool>> expression)
     {
-        return FindByCondition(expression).Any();
+        return await DbContext.Set<T>().AnyAsync(expression);
     }
 
     public async Task AddAsync(T entity, CancellationToken cancellationToken = default)

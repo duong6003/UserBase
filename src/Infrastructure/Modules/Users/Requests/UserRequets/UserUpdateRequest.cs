@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Infrastructure.Modules.Users.Requests.UserRequests
 {
-    public class UpdateUserRequest
+    public class UserUpdateRequest
     {
         public string? UserName { get; set; }
         public string? EmailAddress { get; set; }
@@ -11,6 +11,6 @@ namespace Infrastructure.Modules.Users.Requests.UserRequests
         public string? ConfirmPassword { get; set; }
         public IFormFile? Avatar { get; set; }
         public Guid? RoleId { get; set; }
-        public List<UpdateUserPermission>? UserPermissions { get; set; }
+        public List<UpdateUserPermissionRequest>? UserPermissions { get; set; }
     }
 }

@@ -4,12 +4,13 @@ using Infrastructure.Definitions;
 using Infrastructure.Modules.Users.Entities;
 using Infrastructure.Modules.Users.Requests.UserRequests;
 using Infrastructure.Modules.Users.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Web.Controllers.Users
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize]
+    [Authorize]
     public class UsersController : BaseController
     {
         private readonly IUserService UserService;
@@ -31,16 +32,18 @@ namespace Web.Controllers.Users
             return Ok(user, Messages.Users.GetDetailSuccessfully);
         }
         [HttpPost("signup")]
-        public async Task<IActionResult> SignUp(UserSignUpRequest request)
+        [AllowAnonymous]
+        public async Task<IActionResult> SignUp([FromForm] UserSignUpRequest request)
         {
-            (User? User, string?ErrorMessage) = await UserService.CreateAccount(request);
+            (User? User, string?ErrorMessage) = await UserService.CreateAsync(request);
             if(ErrorMessage is not null) return BadRequest(ErrorMessage);
-            return Ok(User, Messages.Users.CreateSuccess);
+            return Ok(User, Messages.Users.CreateSuccessfully);
         }
         [HttpPost("signin")]
-        public async Task<IActionResult> SignIn(UserSignInRequest request)
+        [AllowAnonymous]
+        public async Task<IActionResult> SignIn([FromBody] UserSignInRequest request)
         {
-            (string AccesToken, string? errorMessage) = await UserService.Authenticate(request);
+            (string AccesToken, string? errorMessage) = await UserService.AuthenticateAsync(request);
             if(errorMessage is not null) return BadRequest(errorMessage);
             return Ok(AccesToken, Messages.Users.LoginSuccess);
         }

@@ -1,9 +1,9 @@
-﻿using Core.Common.Validation;
-using Hangfire;
+﻿using Hangfire;
 using Hangfire.MySql;
 using HangfireBasicAuthenticationFilter;
 using Infrastructure.Mappings;
 using Infrastructure.Modules.Users.Services;
+using Infrastructure.Modules.Users.Validations.UserValidations;
 using Infrastructure.Persistence.Contexts;
 using Infrastructure.Persistence.GlobalValidation;
 using Infrastructure.Persistence.Repositories;
@@ -33,11 +33,13 @@ public static class Startup
         ));
 
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
+        services.AddScoped<IGlobalValidationWrapper, GlobalValidationWrapper>();
 
         services.AddAutoMapper(typeof(MappingProfile));
-        services.AddScoped(typeof(IGlobalValidation<>), typeof(GlobalValidation<>));
         #region Add Module Services
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IRoleService, RoleService>();
+        services.AddScoped<IPermissionService, PermissionService>();
         #endregion
 
         return services;
@@ -55,7 +57,6 @@ public static class Startup
             }
         };
         app.UseHangfireDashboard(configuration["HangfireSettings:Route"], dashboardOptions);
-
         return app;
     }
 }

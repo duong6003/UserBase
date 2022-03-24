@@ -2,6 +2,7 @@ using FluentValidation.AspNetCore;
 using Hangfire;
 using HealthChecks.UI.Client;
 using Infrastructure;
+using Infrastructure.Persistence.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Serilog;
+using System.Reflection;
 using System.Text;
 using Web.Exceptions;
 using Web.OpenAPISpecification;
@@ -61,8 +63,8 @@ try
         {
             ValidateIssuer = true,
             ValidateAudience = true,
-            ValidIssuer = Configuration["JwtSettings:Issuer"],
-            ValidAudience = Configuration["JwtSettings:Issuer"],
+            ValidIssuer = Configuration["JwtSettings:IsUser"],
+            ValidAudience = Configuration["JwtSettings:IsUser"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration["JwtSettings:SecretKey"]))
         };
     });
@@ -122,7 +124,7 @@ try
     })
     .AddFluentValidation(options =>
     {
-        options.RegisterValidatorsFromAssemblyContaining<Program>();
+        options.RegisterValidatorsFromAssemblyContaining(typeof(RepositoryWrapper));
     })
     .AddNewtonsoftJson(options =>
     {

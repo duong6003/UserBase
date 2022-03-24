@@ -1,18 +1,19 @@
 using FluentValidation;
 using Infrastructure.Definitions;
 using Infrastructure.Modules.Users.Requests.UserRequests;
+using Infrastructure.Persistence.Repositories;
 
 namespace Infrastructure.Modules.Users.Validations.UserValidations
 {
     public class UserSignInValidation : AbstractValidator<UserSignInRequest>
     {
-        private readonly GlobalUserValidation _userValidation;
+        private readonly IRepositoryWrapper RepositoryWrapper;
 
-        public UserSignInValidation(GlobalUserValidation userValidation)
+        public UserSignInValidation(IRepositoryWrapper repositoryWrapper)
         {
-            _userValidation = userValidation;
+            RepositoryWrapper = repositoryWrapper;
             RuleFor(x => x.UserName)
-                .Must((req, userName) => !_userValidation.IsExistProperty(x => x.UserName == userName)).WithMessage(Messages.Users.UserNameAlreadyExist)
+                .Must((req, userName) => RepositoryWrapper.Users.IsExistProperty(x => x.UserName == userName)).WithMessage(Messages.Users.UserNameNotExist)
                 .Matches(@"^(?=[a-zA-Z])[-\w.]{0,23}([a-zA-Z\d]|(?<![-.])_)$").WithMessage(Messages.Users.UserNameInvalid)
                 .MaximumLength(50).WithMessage(Messages.Users.UserNameInValidLength + "{MaxLength}");
 

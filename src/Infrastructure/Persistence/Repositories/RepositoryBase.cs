@@ -23,6 +23,8 @@ public interface IRepositoryBase<T> where T : class
     IQueryable<T> FindAll(bool isAsNoTracking = default);
 
     IQueryable<T> FindByCondition(Expression<Func<T, bool>> expression, bool isAsNoTracking = default);
+    Task<bool> IsExistId<TId>(TId? id, CancellationToken cancellationToken = default) where TId : notnull;
+    bool IsExistProperty(Expression<Func<T, bool>> expression);
 }
 
 public class RepositoryBase<T> : IRepositoryBase<T> where T : class
@@ -30,6 +32,15 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class
     private readonly ApplicationDbContext DbContext;
 
     public RepositoryBase(ApplicationDbContext dbContext) => DbContext = dbContext;
+    public async Task<bool> IsExistId<Tid>(Tid? id, CancellationToken cancellationToken = default) where Tid : notnull
+    {
+        var entity = await GetByIdAsync(id, cancellationToken);
+        return entity != null;
+    }
+    public bool IsExistProperty(Expression<Func<T, bool>> expression)
+    {
+        return FindByCondition(expression).Any();
+    }
 
     public async Task AddAsync(T entity, CancellationToken cancellationToken = default)
     {
@@ -67,7 +78,7 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class
         await DbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<T?> GetByIdAsync<TId>(TId id, CancellationToken cancellationToken = default) where TId : notnull
+    public async Task<T?> GetByIdAsync<TId>(TId? id, CancellationToken cancellationToken = default) where TId : notnull
     {
         return await DbContext.Set<T>().FindAsync(new object?[] { id }, cancellationToken: cancellationToken);
     }

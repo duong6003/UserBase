@@ -1,18 +1,20 @@
 using FluentValidation;
 using Infrastructure.Definitions;
 using Infrastructure.Modules.Users.Requests.UserRequests;
+using Infrastructure.Persistence.Repositories;
 
 namespace Infrastructure.Modules.Users.Validations.UserValidations
 {
     public class ForgotPasswordValidation : AbstractValidator<ForgotPasswordRequest>
     {
-        private readonly GlobalUserValidation _userValidation;
+        private readonly IRepositoryWrapper RepositoryWrapper;
 
-        public ForgotPasswordValidation(GlobalUserValidation userValidation)
+        public ForgotPasswordValidation(IRepositoryWrapper repositoryWrapper)
         {
-            _userValidation = userValidation;
+            RepositoryWrapper = repositoryWrapper;
+        
             RuleFor(x => x.UserName)
-                .Must((req, userName) => _userValidation.IsExistProperty(x=> x.UserName == userName)).WithMessage(Messages.Users.UserNameNotFound);
+                .Must((req, userName) => RepositoryWrapper.Users.IsExistProperty(x=> x.UserName == userName)).WithMessage(Messages.Users.UserNameNotExist);
         }
     }
 }

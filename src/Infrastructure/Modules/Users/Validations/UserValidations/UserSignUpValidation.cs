@@ -1,23 +1,25 @@
 using FluentValidation;
 using Infrastructure.Definitions;
 using Infrastructure.Modules.Users.Requests.UserRequests;
+using Infrastructure.Modules.Users.Validations.UserPermissionValidations;
 using Infrastructure.Persistence.GlobalValidation;
+using Infrastructure.Persistence.Repositories;
 
 namespace Infrastructure.Modules.Users.Validations.UserValidations
 {
     public class UserSignUpValidation : AbstractValidator<UserSignUpRequest>
     {
-        private readonly GlobalUserValidation _userValidation;
+        private readonly IRepositoryWrapper RepositoryWrapper;
 
-        public UserSignUpValidation(GlobalUserValidation userValidation)
+        public UserSignUpValidation(IRepositoryWrapper repositoryWrapper)
         {
-            _userValidation = userValidation;
+            RepositoryWrapper = repositoryWrapper;
             RuleFor(x => x.UserName)
-                .Must((req, userName) => !_userValidation.IsExistProperty(x => x.UserName == userName)).WithMessage(Messages.Users.UserNameAlreadyExist)
+                .Must((req, userName) => !RepositoryWrapper.Users.IsExistProperty(x => x.UserName == userName)).WithMessage(Messages.Users.UserNameAlreadyExist)
                 .Matches(@"^(?=[a-zA-Z])[-\w.]{0,23}([a-zA-Z\d]|(?<![-.])_)$").WithMessage(Messages.Users.UserNameInvalid)
                 .MaximumLength(50).WithMessage(Messages.Users.UserNameInValidLength + "{MaxLength}");
             RuleFor(x => x.EmailAddress)
-                .Must((req, emailAddress) => !_userValidation.IsExistProperty(x => x.EmailAddress == emailAddress)).WithMessage(Messages.Users.EmailAddressAlreadyExist)
+                .Must((req, emailAddress) => !RepositoryWrapper.Users.IsExistProperty(x => x.EmailAddress == emailAddress)).WithMessage(Messages.Users.EmailAddressAlreadyExist)
                 .EmailAddress().WithMessage(Messages.Users.EmailAddressInvalid);
             RuleFor(x => x.Password)
                 .Length(6,128).WithMessage(Messages.Users.PasswordLengthInvalid + "Equal{MinLength}To{MaxLength}")
@@ -25,6 +27,10 @@ namespace Infrastructure.Modules.Users.Validations.UserValidations
             RuleFor(x => x.ConfirmPassword).Equal(x=> x.Password).WithMessage(Messages.Users.PasswordConfirmNotMatch);
             RuleFor(x => x.Avatar)
                 .IsValidFile("image");
+            RuleFor(x => x.RoleId)
+                .NotNull().WithMessage(Messages.Roles.IdIsRequired)
+                .MustAsync( async(roleId, cancellationToken) => await RepositoryWrapper.Roles.IsExistId(roleId)).WithMessage(Messages.Roles.IdNotFound);
+            RuleForEach(x => x.UserPermissions).Cascade(CascadeMode.Stop).SetValidator(new CreateUserPermissionValidation(RepositoryWrapper));
         }
     }
 }

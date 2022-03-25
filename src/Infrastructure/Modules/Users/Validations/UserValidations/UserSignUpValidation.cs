@@ -15,6 +15,7 @@ namespace Infrastructure.Modules.Users.Validations.UserValidations
         {
             RepositoryWrapper = repositoryWrapper;
             RuleFor(x => x.UserName)
+                .NotEmpty().WithMessage(Messages.Users.UserNameEmpty)
                 .MustAsync(async(userName, cancellationToken) => !await RepositoryWrapper.Users.IsExistProperty(x => x.UserName == userName)).WithMessage(Messages.Users.UserNameAlreadyExist)
                 .Matches(@"^(?=[a-zA-Z])[-\w.]{0,23}([a-zA-Z\d]|(?<![-.])_)$").WithMessage(Messages.Users.UserNameInvalid)
                 .MaximumLength(50).WithMessage(Messages.Users.UserNameInValidLength + "{MaxLength}");

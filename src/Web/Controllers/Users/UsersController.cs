@@ -6,6 +6,8 @@ using Infrastructure.Modules.Users.Requests.UserRequests;
 using Infrastructure.Modules.Users.Services;
 using Microsoft.AspNetCore.Authorization;
 using System.Text.Encodings.Web;
+using Infrastructure.Persistence.ServiceHelpers.SendMailService;
+using Infrastructure.Persistence.ServiceHelpers;
 
 namespace Web.Controllers.Users
 {
@@ -15,9 +17,11 @@ namespace Web.Controllers.Users
     public class UsersController : BaseController
     {
         private readonly IUserService UserService;
-        public UsersController(IUserService userService)
+        private readonly ISendEmail SendEmailService;
+        public UsersController(IUserService userService, ISendEmail sendEmailService)
         {
             UserService = userService;
+            SendEmailService = sendEmailService;
         }
 
         [HttpGet("{userId}")]
@@ -36,8 +40,8 @@ namespace Web.Controllers.Users
         [AllowAnonymous]
         public async Task<IActionResult> SignUp([FromForm] UserSignUpRequest request)
         {
-            (User? User, string?ErrorMessage) = await UserService.CreateAsync(request);
-            if(ErrorMessage is not null) return BadRequest(ErrorMessage);
+            (User? User, string? ErrorMessage) = await UserService.CreateAsync(request);
+            if (ErrorMessage is not null) return BadRequest(ErrorMessage);
             return Ok(User, Messages.Users.CreateSuccessfully);
         }
         [HttpPost("signin")]
@@ -45,47 +49,52 @@ namespace Web.Controllers.Users
         public async Task<IActionResult> SignIn([FromBody] UserSignInRequest request)
         {
             (string AccesToken, string? errorMessage) = await UserService.AuthenticateAsync(request);
-            if(errorMessage is not null) return BadRequest(errorMessage);
+            if (errorMessage is not null) return BadRequest(errorMessage);
             return Ok(AccesToken, Messages.Users.LoginSuccess);
         }
-        // [HttpPut("{Id}")]
-        // public async Task<IActionResult> Update(UpdateUserRequest request)
-        // {
-        //     if(errorMessage is not null) return BadRequest(errorMessage);
-        //     return Ok(AccesToken, Messages.Users.LoginSuccess);
-        // }
-        [HttpGet]
+        [HttpPut("{userId}")]
+        public async Task<IActionResult> Update(Guid userId,[FromBody]UserUpdateRequest request)
+        {
+            User? user = await UserService.GetByIdAsync(userId);
+            if (user == null) return BadRequest(Messages.Users.IdNotFound);
+
+            (User? newUser, string? errorMessage) = await UserService.UpdateAsync(user, request);
+            if (errorMessage is not null) return BadRequest(errorMessage);
+
+            return Ok(newUser, Messages.Users.LoginSuccess);
+        }
+        [HttpPost("forgot")]
         [AllowAnonymous]
-        public async Task<IActionResult> ConfirmEmailAsync(Guid userId, string token)
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
-            return Ok();
+            User? user = await UserService.GetByEmailAsync(request.Email!);
+            // For more information on how to enable account confirmation and password reset please
+            // visit https://go.microsoft.com/fwlink/?LinkID=532713
+            string code = UserService.GeneratePasswordResetTokenAsync(user!);
+            var callbackUrl = Url.ResetPasswordCallbackLink(nameof(UsersController.ResetPassword), user!.Id, code, Request.Scheme);
+
+            await SendEmailService.SendEmailAsync(request.Email, "Reset Password", $"Please reset your password by clicking here: <a href='{callbackUrl}'>link</a>");
+
+            return Ok(user, Messages.Users.SendEmailSuccessfully);
         }
-        [HttpGet]
+        [HttpPost("confirm")]
         [AllowAnonymous]
-        public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
+        public async Task<IActionResult> ForgotPasswordConfirm([FromQuery]Guid userId, [FromQuery]string code)
         {
-            return Ok();
+            return Ok(await UserService.ConfirmResetPassword(userId, code));
         }
-        private string EmailConfirmationLink(IUrlHelper urlHelper, Guid userId, string code, string scheme)
+        [HttpPost("reset")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword([FromBody]ResetPasswordRequest request)
         {
-            return urlHelper.Action(
-                action: nameof(UsersController.ConfirmEmailAsync),
-                controller: "Users",
-                values: new { userId, code },
-                protocol: scheme)!;
+            User? user = await UserService.GetByEmailAsync(request.Email!);
+            (User? updateUser, string? errorMessage) = await UserService.ResetPassword(request);
+            if (errorMessage != null)
+            {
+                return BadRequest(errorMessage);
+            }
+            return Ok(updateUser, Messages.Users.ResetPasswordSuccesfully);
         }
-        public string ResetPasswordCallbackLink(IUrlHelper urlHelper, Guid userId, string code, string scheme)
-        {
-            return urlHelper.Action(
-                action: nameof(UsersController.ResetPassword),
-                controller: "Users",
-                values: new { userId, code },
-                protocol: scheme);
-        }
-        public Task SendEmailConfirmationAsync(IEmailSender emailSender, string email, string link)
-        {
-            return emailSender.SendEmailAsync(email, "Confirm your email",
-                $"Please confirm your account by clicking this link: <a href='{HtmlEncoder.Default.Encode(link)}'>click here</a>");
-        }
+
     }
 }

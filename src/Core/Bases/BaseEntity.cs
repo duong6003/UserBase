@@ -8,7 +8,7 @@ namespace Core.Bases;
 
 public abstract class BaseEntity : BaseEntity<Guid>
 {
-    protected BaseEntity() => Id = Guid.NewGuid();
+    protected BaseEntity() => (Id, CreatedAt) = (Guid.NewGuid(), DateTimeOffset.Now);
 }
 
 public abstract class BaseEntity<TId>

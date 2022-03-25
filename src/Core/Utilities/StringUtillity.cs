@@ -4,7 +4,8 @@ namespace Core.Utilities
     {
         public static string HashPassword(this string password)
         {
-            return BCrypt.Net.BCrypt.HashPassword(password);
+            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
+            return hashedPassword;
         }
     }
 }

@@ -14,7 +14,7 @@ namespace Infrastructure.Modules.Users.Validations.RolesValidations
         {
             RepositoryWrapper = repositoryWrapper;
             RuleFor(x => x.Name)
-                .Empty().WithMessage(Messages.Roles.NameEmpty)
+                .NotEmpty().WithMessage(Messages.Roles.NameEmpty)
                 .IsValidVietNamName().WithMessage(Messages.Roles.NameInValid);
             RuleForEach(x => x.RolePermissions).Cascade(CascadeMode.Stop).SetValidator(new UpdateRolePermissionValidation(RepositoryWrapper));
         }

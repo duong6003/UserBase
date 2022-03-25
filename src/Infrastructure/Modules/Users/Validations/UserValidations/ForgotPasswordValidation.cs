@@ -13,8 +13,8 @@ namespace Infrastructure.Modules.Users.Validations.UserValidations
         {
             RepositoryWrapper = repositoryWrapper;
         
-            RuleFor(x => x.UserName)
-                .MustAsync(async(userName, cancellationToken) => await RepositoryWrapper.Users.IsExistProperty(x=> x.UserName == userName)).WithMessage(Messages.Users.UserNameNotExist);
+            RuleFor(x => x.Email)
+                .MustAsync(async(email, cancellationToken) => await RepositoryWrapper.Users.IsExistProperty(x=> x.EmailAddress == email)).WithMessage(Messages.Users.UserNameNotExist);
         }
     }
 }

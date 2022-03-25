@@ -7,6 +7,7 @@ using Infrastructure.Modules.Users.Validations.UserValidations;
 using Infrastructure.Persistence.Contexts;
 using Infrastructure.Persistence.GlobalValidation;
 using Infrastructure.Persistence.Repositories;
+using Infrastructure.Persistence.ServiceHelpers.SendMailService;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -38,6 +39,7 @@ public static class Startup
         #region Add Module Services
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IRoleService, RoleService>();
+        services.AddScoped<ISendEmail, SendEmail>();
         services.AddScoped<IPermissionService, PermissionService>();
         #endregion
 

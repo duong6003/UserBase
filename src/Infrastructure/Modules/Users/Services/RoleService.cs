@@ -2,8 +2,10 @@ using AutoMapper;
 using Envelop.App.Ultilities;
 using Infrastructure.Definitions;
 using Infrastructure.Modules.Users.Entities;
+using Infrastructure.Modules.Users.Requests.RolePermissionRequests;
 using Infrastructure.Modules.Users.Requests.RoleRequests;
 using Infrastructure.Persistence.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Modules.Users.Services
 {
@@ -42,10 +44,10 @@ namespace Infrastructure.Modules.Users.Services
         public async Task<(PaginationResponse<Role>, string? ErrorMessage)> GetAllAsync(PaginationRequest request)
         {
             IQueryable<Role>? roles = RepositoryWrapper.Roles.FindByCondition(x =>
-       (
-           string.IsNullOrEmpty(request.SearchContent)
-           || x.Name!.ToLower().Contains(request.SearchContent!.ToLower())
-       ));
+                (
+                    string.IsNullOrEmpty(request.SearchContent)
+                    || x.Name!.ToLower().Contains(request.SearchContent!.ToLower())
+                )).Include(x=> x.RolePermissions);
             roles = SortUtility<Role>.ApplySort(roles, request.OrderByQuery!);
             PaginationUtility<Role>? data = await PaginationUtility<Role>.ToPagedListAsync(roles, request.PageNumber, request.PageSize);
             return (PaginationResponse<Role>.PaginationInfo(data, data.PageInfo), Messages.Roles.GetAllSuccessfully);
@@ -58,7 +60,7 @@ namespace Infrastructure.Modules.Users.Services
 
         public async Task<(Role? Role, string? ErrorMessage)> GetDetailAsync(Guid roleId)
         {
-            Role? role = await GetByIdAsync(roleId);
+            Role? role = await RepositoryWrapper.Roles.FindByCondition(x=> x.Id == roleId).Include(x=> x.RolePermissions).FirstOrDefaultAsync();
             if (role is null)
             {
                 return (null, Messages.Roles.IdNotFound);
@@ -68,36 +70,36 @@ namespace Infrastructure.Modules.Users.Services
 
         public async Task<(Role? Role, string? ErrorMessage)> UpdateAsync(Role role, UpdateRoleRequest request)
         {
-            var newRole = Mapper.Map<UpdateRoleRequest,Role>(request);
             //Get role permisstion Detail
-            ICollection<RolePermission>? newRolePermissions = newRole.RolePermissions;
+            var newRolePermissions = request.RolePermissions;
 
             //new role permissions added
-            List<RolePermission>? addedRolePermissions = newRolePermissions!.Where(x => x.Id == Guid.Empty || x.Id == null).ToList();
+            var addedRolePermissionsReq = newRolePermissions!.Where(x => x.Id == Guid.Empty).ToList();
+            var addedRolePermissions = Mapper.Map<List<RolePermission>>(addedRolePermissionsReq);
 
             //get updated role permissions
-            List<RolePermission>? updatedRolePermissions = newRolePermissions!.Where(x => x.Id != Guid.Empty || x.Id == null).ToList();
-            
+            var updatedRolePermissionsReq = newRolePermissions!.Where(x => x.Id != Guid.Empty).ToList();
+            var updatedRolePermissions = Mapper.Map<List<RolePermission>>(updatedRolePermissionsReq);
+
             //Existed RolePermissions
             var existedRolePermissions = RepositoryWrapper.RolePermissions.FindByCondition(x => x.RoleId == role.Id).ToList();
-            
-            //Clear db
-            newRole.RolePermissions!.Clear();
 
-            foreach (RolePermission? rolePermission in updatedRolePermissions)
-            {
-                await RepositoryWrapper.RolePermissions.UpdateAsync(rolePermission);
-            }
-
-            foreach (RolePermission? rolePermission in addedRolePermissions)
+            foreach (var rolePermission in addedRolePermissions)
             {
                 await RepositoryWrapper.RolePermissions.AddAsync(rolePermission);
             }
 
+            foreach (var rolePermission in updatedRolePermissions)
+            {
+                await RepositoryWrapper.RolePermissions.UpdateAsync(rolePermission);
+            }
+
             await RepositoryWrapper.RolePermissions.DeleteRangeAsync(existedRolePermissions.Except(updatedRolePermissions));
 
-            await RepositoryWrapper.Roles.UpdateAsync(newRole);
-            return(newRole, null);
+            role.Name = request.Name;
+
+            await RepositoryWrapper.Roles.UpdateAsync(role);
+            return(role, null);
         }
     }
 }

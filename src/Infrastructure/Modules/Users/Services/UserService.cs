@@ -1,48 +1,60 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using AutoMapper;
+﻿using AutoMapper;
+using Core.Utilities;
+using Envelop.App.Ultilities;
 using Infrastructure.Definitions;
 using Infrastructure.Modules.Users.Entities;
 using Infrastructure.Modules.Users.Requests.UserRequests;
-using Infrastructure.Persistence.Repositories;
-using Core.Utilities;
-using Envelop.App.Ultilities;
 using Infrastructure.Persistence.Definitions;
-using Microsoft.AspNetCore.Mvc;
+using Infrastructure.Persistence.Repositories;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace Infrastructure.Modules.Users.Services;
 
 public interface IUserService
 {
     Task<User?> GetByIdAsync(Guid userId);
+
+    Task<User?> GetByEmailAsync(string email);
+
     Task<(User? User, string? ErrorMessage)> GetDetailAsync(Guid userId);
+
     Task<(PaginationResponse<User>, string? ErrorMessage)> GetAllAsync(PaginationRequest request);
+
     Task<(User? User, string? ErrorMessage)> CreateAsync(UserSignUpRequest request);
+
     Task<(User? User, string? ErrorMessage)> UpdateAsync(User user, UserUpdateRequest request);
+
     Task<(User? User, string? ErrorMessage)> DeleteAsync(User user);
+
     Task<string> GenerateAccessTokenAsync(User user);
+
     Task<string> GenerateRefreshTokenAsync();
+
     Task<(string AccesToken, string? ErrorMessage)> AuthenticateAsync(UserSignInRequest request);
-    string GenerateEmailConfirmationTokenAsync(User user);
+
+    string GeneratePasswordResetTokenAsync(User user);
+
+    Task<(User? User, string? ErrorMessage)> ResetPassword(ResetPasswordRequest request);
+
+    Task<string> ConfirmResetPassword(Guid userId, string code);
 }
 
 public class UserService : IUserService
 {
     private readonly IRepositoryWrapper RepositoryWrapper;
     private readonly IMapper Mapper;
-    private readonly IUrlHelper UrlHelper;
     private readonly IConfiguration Configuration;
 
-    public UserService(IConfiguration configuration, IRepositoryWrapper repositoryWrapper, IMapper mapper, IUrlHelper urlHelper)
+    public UserService(IConfiguration configuration, IRepositoryWrapper repositoryWrapper, IMapper mapper)
     {
         RepositoryWrapper = repositoryWrapper;
         Configuration = configuration;
         Mapper = mapper;
-        UrlHelper = urlHelper;
     }
 
     public async Task<User?> GetByIdAsync(Guid userId)
@@ -50,15 +62,21 @@ public class UserService : IUserService
         return await RepositoryWrapper.Users.GetByIdAsync(userId);
     }
 
+    public async Task<User?> GetByEmailAsync(string emailAddress)
+    {
+        return await RepositoryWrapper.Users.FindByCondition(x => x.EmailAddress == emailAddress).FirstOrDefaultAsync();
+    }
+
     public async Task<(User? User, string? ErrorMessage)> GetDetailAsync(Guid userId)
     {
-        User? user = await GetByIdAsync(userId);
+        User? user = await RepositoryWrapper.Users.FindByCondition(x=> x.Id == userId).Include(x=> x.UserPermissions).FirstOrDefaultAsync();
         if (user is null)
         {
             return (null, Messages.Users.IdNotFound);
         }
         return (user, null);
     }
+
     private Task<string> TokenGenerate(string secretKey, string isUser, string isAudience, DateTime? expireTime, IEnumerable<Claim> claims = null!)
     {
         SecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
@@ -72,6 +90,7 @@ public class UserService : IUserService
             signingCredentials: creds);
         return Task.FromResult(new JwtSecurityTokenHandler().WriteToken(token));
     }
+
     public async Task<string> GenerateAccessTokenAsync(User user)
     {
         List<string> permissions = new();
@@ -82,24 +101,29 @@ public class UserService : IUserService
             new Claim(JwtClaimsName.Identification, user.Id.ToString()),
             new Claim(JwtClaimsName.UserName, user.UserName!),
             new Claim(JwtClaimsName.Email, user.EmailAddress!),
-            new Claim(JwtClaimsName.Avatar, user.Avatar!),
         };
-
-        userPermissions.ForEach(x => permissions.Add(x.Permission!.Code!));
-
-        foreach (string permission in permissions)
+        if (permissions.Count > 0)
         {
-            claims.Add(new Claim(JwtClaimsName.UserPermissions, permission));
+            userPermissions.ForEach(x => permissions.Add(x.Permission!.Code!));
+
+            foreach (string permission in permissions)
+            {
+                claims.Add(new Claim(JwtClaimsName.UserPermissions, permission));
+            }
+        }
+        if (user.Avatar is not null)
+        {
+            claims.Add(new Claim(JwtClaimsName.Avatar, user.Avatar));
         }
         double timeExpire = double.Parse(Configuration["JwtSettings:ExpiredTime"]);
 
-        return await TokenGenerate(Configuration["JwtSettings:Key"],
+        return await TokenGenerate(Configuration["JwtSettings:SecretKey"],
             Configuration["JwtSettings:IsUser"],
             Configuration["JwtSettings:IsAudience"],
             DateTime.UtcNow.AddMinutes(timeExpire),
             claims);
-
     }
+
     public async Task<string> GenerateRefreshTokenAsync()
     {
         double timeExpire;
@@ -112,33 +136,33 @@ public class UserService : IUserService
             DateTime.UtcNow.AddDays(double.Parse(Configuration["RefreshTokenExpiredTime"]))
             );
     }
+
     public async Task<(string AccesToken, string? ErrorMessage)> AuthenticateAsync(UserSignInRequest request)
     {
         User? user = await RepositoryWrapper.Users.FindByCondition(x => x.UserName == request.UserName).FirstOrDefaultAsync()!;
-        if (user == null) return (null!, Messages.Users.UserNameNotFound);
 
-        bool success = BCrypt.Net.BCrypt.Verify(request.Password!.HashPassword(), user.Password);
+        bool success = BCrypt.Net.BCrypt.Verify(request.Password, user!.Password);
         if (!success) return (null!, Messages.Users.PasswordNotMatch);
 
-        if(user.Status == (byte)Status.InActive) return (null!, Messages.Users.UserIsLocked);
+        if (user.Status == (byte)Status.InActive) return (null!, Messages.Users.UserIsLocked);
 
         string token = await GenerateAccessTokenAsync(user);
 
         return (token, null!);
     }
+
     public async Task<(User? User, string? ErrorMessage)> CreateAsync(UserSignUpRequest request)
     {
-        List<RolePermission> rolePermissions = await RepositoryWrapper.RolePermissions.FindByCondition(x=> x.RoleId == request.RoleId).ToListAsync();
         User? user = Mapper.Map<User>(request);
-        foreach(RolePermission rolePermission in rolePermissions)
-        {
-            user.UserPermissions!.Add(new UserPermission(){
-                UserId = user.Id,
-                PermissionId = rolePermission.PermissionId
-            });
-        }
+        List<UserPermission> rolePermissions = await RepositoryWrapper.RolePermissions.FindByCondition(x => x.RoleId == request.RoleId)
+                .Select(x => new UserPermission() { UserId = user.Id, PermissionId = x.PermissionId }).ToListAsync();
+        user.UserPermissions!.AddRange(rolePermissions);
         await RepositoryWrapper.Users.AddAsync(user);
         return (user, null);
+    }
+
+    public void AddRoleToUser()
+    {
     }
 
     public async Task<(PaginationResponse<User>, string? ErrorMessage)> GetAllAsync(PaginationRequest request)
@@ -148,7 +172,7 @@ public class UserService : IUserService
           string.IsNullOrEmpty(request.SearchContent)
           || x.UserName!.ToLower().Contains(request.SearchContent!.ToLower())
           || x.EmailAddress!.ToLower().Contains(request.SearchContent!.ToLower())
-      ));
+      )).Include(x=> x.UserPermissions);
         users = SortUtility<User>.ApplySort(users, request.OrderByQuery!);
         PaginationUtility<User>? data = await PaginationUtility<User>.ToPagedListAsync(users, request.PageNumber, request.PageSize);
         return (PaginationResponse<User>.PaginationInfo(data, data.PageInfo), Messages.Users.GetAllSuccessfully);
@@ -156,20 +180,26 @@ public class UserService : IUserService
 
     public async Task<(User? User, string? ErrorMessage)> UpdateAsync(User user, UserUpdateRequest request)
     {
-        if(user.RoleId != request.RoleId)
-        User?  newUser = Mapper.Map<UserUpdateRequest, User>(request);
+        User? newUser = Mapper.Map<UserUpdateRequest, User>(request);
         //Get User permisstion Detail
-        ICollection<UserPermission>? newUserPermissions = newUser.UserPermissions;
+        var newUserPermissions = request.UserPermissions;
 
         //new User permissions added
-        List<UserPermission>? addedUserPermissions = newUserPermissions!.Where(x => x.Id == Guid.Empty || x.Id == null).ToList();
+        var addedUserPermissionsReq = newUserPermissions!.Where(x => x.Id == Guid.Empty).ToList();
+        var addedUserPermissions = Mapper.Map<List<UserPermission>>(addedUserPermissionsReq);
 
         //get updated User permissions
-        List<UserPermission>? updatedUserPermissions = newUserPermissions!.Where(x => x.Id != Guid.Empty || x.Id == null).ToList();
+        var updatedUserPermissionsReq = newUserPermissions!.Where(x => x.Id != Guid.Empty).ToList();
+        var updatedUserPermissions = Mapper.Map<List<UserPermission>>(updatedUserPermissionsReq);
 
         //Existed UserPermissions
-        List<UserPermission>? existedUserPermissions = RepositoryWrapper.UserPermissions.FindByCondition(x => x.UserId == user.Id).ToList();
-
+        var existedUserPermissions = RepositoryWrapper.UserPermissions.FindByCondition(x => x.UserId == user.Id).ToList();
+        if (user.RoleId != request.RoleId)
+        {
+            var newUserRolePermissions = await RepositoryWrapper.RolePermissions.FindByCondition(x => x.RoleId == request.RoleId)
+                    .Select(x => new UserPermission { UserId = user.Id, PermissionId = x.PermissionId }).ToListAsync();
+            addedUserPermissions.AddRange(newUserRolePermissions);
+        }
         //Clear db
         newUser.UserPermissions!.Clear();
 
@@ -193,5 +223,42 @@ public class UserService : IUserService
     {
         await RepositoryWrapper.Users.DeleteAsync(user);
         return (user, Messages.Users.DeleteUserSuccessfully);
+    }
+
+    public string GeneratePasswordResetTokenAsync(User user)
+    {
+        Random rd = new Random();
+        string code = rd.Next(1000000, 9999999).ToString();
+        user.ResetCode = code;
+        RepositoryWrapper.Users.UpdateAsync(user);
+        return code;
+    }
+
+    public async Task<(User? User, string? ErrorMessage)> ResetPassword(User? user, string code, string password)
+    {
+        if (user!.ResetCode != code)
+        {
+            return (null, Messages.Users.ResetCodeNotValid);
+        }
+        user.Password = password.HashPassword();
+        await RepositoryWrapper.Users.UpdateAsync(user);
+        return (user, null);
+    }
+
+    public async Task<string> ConfirmResetPassword(Guid userId, string code)
+    {
+        User? user = await RepositoryWrapper.Users.GetByIdAsync(userId);
+        if (user is null) return Messages.Users.IdNotFound;
+        if (user!.ResetCode != code) return Messages.Users.UserResetCodeInvalid;
+        return Messages.Users.UserResetCodeValid;
+    }
+
+    public async Task<(User? User, string? ErrorMessage)> ResetPassword(ResetPasswordRequest request)
+    {
+        User? user = await GetByEmailAsync(request.Email!);
+        string newPassword = user!.Password!.HashPassword();
+        user.Password = newPassword;
+        await RepositoryWrapper.Users.UpdateAsync(user);
+        return (user, Messages.Users.UserResetSuccesfully);
     }
 }

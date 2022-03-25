@@ -47,8 +47,8 @@ namespace Web.Controllers.Users
         [HttpGet("GetAll")]
         public async Task<IActionResult> GetAllAsync([FromQuery] PaginationRequest request)
         {
-            (PaginationResponse<Role> users, string? errorMessage) = await RoleService.GetAllAsync(request);
-            return Ok(users, Messages.Roles.GetAllSuccessfully);
+            (PaginationResponse<Role> roles, string? errorMessage) = await RoleService.GetAllAsync(request);
+            return Ok(roles, Messages.Roles.GetAllSuccessfully);
         }
 
         /// <summary>

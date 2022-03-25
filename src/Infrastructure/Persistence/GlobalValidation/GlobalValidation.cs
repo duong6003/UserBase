@@ -12,17 +12,18 @@ namespace Infrastructure.Persistence.GlobalValidation
     public static class CommonValidationExtention
     {
 
-        public static bool IsValidFile(this IFormFile file, string contentType)
+        public static bool IsValidFile(this IFormFile? file, string contentType)
         {
-            return file.ContentType.Contains(contentType);
+            if (file is null) return true; 
+            return file!.ContentType.Contains(contentType);
         }
         public static IRuleBuilderOptions<T, IFormFile?> IsValidFile<T>(this IRuleBuilder<T, IFormFile?> ruleBuilder, string contentType)
         {
-            return ruleBuilder.Must(x => x!.IsValidFile(contentType)).WithMessage(Files.InValid);
+            return ruleBuilder.Must(file => file!.IsValidFile(contentType)).WithMessage(Files.InValid);
         }
         public static IRuleBuilderOptions<T, IFormFile?> IsValidSize<T>(this IRuleBuilder<T, IFormFile?> ruleBuilder, int size)
         {
-            return ruleBuilder.Must(x => x!.Length <= size).WithMessage(Files.OverSize);
+            return ruleBuilder.Must(file => file!.Length <= size).WithMessage(Files.OverSize);
         }
         public static IRuleBuilderOptions<T, string?> IsValidVietNamName<T>(this IRuleBuilder<T, string?> ruleBuilder)
         {

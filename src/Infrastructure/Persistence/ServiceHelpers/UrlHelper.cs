@@ -14,12 +14,12 @@ namespace Infrastructure.Persistence.ServiceHelpers
         //         protocol: scheme)!;
         // }
 
-        public static string ResetPasswordCallbackLink(this IUrlHelper urlHelper,string controller ,Guid userId, string code, string scheme)
+        public static string ResetPasswordCallbackLink(this IUrlHelper urlHelper,string controller ,Guid userId, string code, DateTime expireTime, string scheme)
         {
             return urlHelper.Action(
                 action: controller!,
                 controller: "Users",
-                values: new { userId, code },
+                values: new { userId, code, expireTime },
                 protocol: scheme)!;
         }
     }

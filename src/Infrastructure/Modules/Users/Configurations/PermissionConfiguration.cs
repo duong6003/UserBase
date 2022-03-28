@@ -8,7 +8,7 @@ namespace Infrastructure.Modules.Users.Configurations
         {
             entityTypeBuilder.ToTable(nameof(Permission));
 
-            entityTypeBuilder.HasKey(x => x.Id);
+            entityTypeBuilder.HasKey(x => x.Code);
         }
     }
 }

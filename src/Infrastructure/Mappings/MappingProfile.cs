@@ -18,16 +18,14 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Avatar, opt => opt.Ignore())
             .ForMember(dest => dest.Password, opt => opt.MapFrom((src, dest) => dest.Password = src.Password!.HashPassword()))
             .ForMember(dest => dest.Status, opt => opt.MapFrom((src, dest) => dest.Status = (byte)Status.Active));
-        CreateMap<UserUpdateRequest, User>();
-        CreateMap<UpdateUserPermissionRequest, UserPermission>()
-            .ForMember(dest => dest.Id, opt => opt.Ignore());
+        CreateMap<UserUpdateRequest, User>().ForMember(dest => dest.UserPermissions, opt => opt.Ignore());
+        CreateMap<UpdateUserPermissionRequest, UserPermission>();
         CreateMap<CreateUserPermissionRequest, UserPermission>();
         // role
         CreateMap<CreateRoleRequest,Role>();
-        CreateMap<UpdateRoleRequest,Role>();
+        CreateMap<UpdateRoleRequest, Role>().ForMember(dest => dest.RolePermissions, opt => opt.Ignore());
 
-        CreateMap<UpdateRolePermissionRequest, RolePermission>()
-            .ForMember(dest => dest.Id, opt => opt.Ignore());
+        CreateMap<UpdateRolePermissionRequest, RolePermission>();
         CreateMap<CreateRolePermissionRequest, RolePermission>();
     }
 }

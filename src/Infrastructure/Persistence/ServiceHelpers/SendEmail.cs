@@ -4,6 +4,7 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
+using MimeKit.Text;
 
 namespace Infrastructure.Persistence.ServiceHelpers.SendMailService
 {
@@ -30,8 +31,8 @@ namespace Infrastructure.Persistence.ServiceHelpers.SendMailService
             email.To.Add(MailboxAddress.Parse(toEmail));
             email.Subject = subject;
             var builder = new BodyBuilder();
-            builder.HtmlBody = body;
-            email.Body = builder.ToMessageBody();
+            email.Body = new TextPart(TextFormat.Html) { Text = body };
+            
             using var smtp = new SmtpClient();
             try
             {

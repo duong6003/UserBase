@@ -14,9 +14,9 @@ namespace Infrastructure.Modules.Users.Validations.RolePermissionValidations
         public CreateRolePermissionValidation(IRepositoryWrapper repositoryWrapper)
         {
             RepositoryWrapper = repositoryWrapper;
-            RuleFor(x => x.PermissionId)
+            RuleFor(x => x.Code)
                 .NotNull().WithMessage(Messages.Permissions.IdIsRequired)
-                .MustAsync(async(permissionId, cancellationToken) => await RepositoryWrapper.Permissions!.IsExistId(permissionId))
+                .MustAsync(async(code, cancellationToken) => await RepositoryWrapper.Permissions!.IsAnyValue(x => x.Code == code))
                 .WithMessage(Messages.Permissions.IdNotFound);
         }
     }

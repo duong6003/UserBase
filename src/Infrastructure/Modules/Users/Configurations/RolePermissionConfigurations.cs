@@ -15,7 +15,7 @@ namespace Infrastructure.Modules.Users.Configurations
         {
             entityTypeBuilder.ToTable("role_permission");
 
-            entityTypeBuilder.HasKey(x => x.Id);
+            entityTypeBuilder.HasKey(x => new {x.RoleId, x.Code});
         }
     }
 }

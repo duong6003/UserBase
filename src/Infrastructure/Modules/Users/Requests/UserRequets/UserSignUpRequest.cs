@@ -13,6 +13,5 @@ namespace Infrastructure.Modules.Users.Requests.UserRequests
         public string? ConfirmPassword { get; set; }
         public IFormFile? Avatar { get; set; }
         public Guid? RoleId { get; set; }
-        public List<CreateUserPermissionRequest>? UserPermissions { get; set; }
     }
 }

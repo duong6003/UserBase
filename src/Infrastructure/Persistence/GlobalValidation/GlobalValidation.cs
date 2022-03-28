@@ -19,41 +19,41 @@ namespace Infrastructure.Persistence.GlobalValidation
         }
         public static IRuleBuilderOptions<T, IFormFile?> IsValidFile<T>(this IRuleBuilder<T, IFormFile?> ruleBuilder, string contentType)
         {
-            return ruleBuilder.Must(file => file!.IsValidFile(contentType)).WithMessage(Files.InValid);
+            return ruleBuilder.Must(file => file!.IsValidFile(contentType));
         }
         public static IRuleBuilderOptions<T, IFormFile?> IsValidSize<T>(this IRuleBuilder<T, IFormFile?> ruleBuilder, int size)
         {
-            return ruleBuilder.Must(file => file!.Length <= size).WithMessage(Files.OverSize);
+            return ruleBuilder.Must(file => file!.Length <= size);
         }
         public static IRuleBuilderOptions<T, string?> IsValidVietNamName<T>(this IRuleBuilder<T, string?> ruleBuilder)
         {
             return ruleBuilder.Matches(@"^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s|_]+$");
         }
     }
-    // public class ValidMediaTypeValidator<T, TProperty> : PropertyValidator<T, TProperty>
+    //public class ValidMediaTypeValidator<T, TProperty> : PropertyValidator<T, TProperty>
 
-    // {
-    //     private string _mediatype;
-    //     public ValidMediaTypeValidator(string mediatype)
-    //     {
-    //         _mediatype = mediatype;
-    //     }
-    //     public override string Name => "ValidMediaTypeValidator";
+    //{
+    //    private string _mediatype;
+    //    public ValidMediaTypeValidator(string mediatype)
+    //    {
+    //        _mediatype = mediatype;
+    //    }
+    //    public override string Name => "ValidMediaTypeValidator";
 
-    //     public override bool IsValid(ValidationContext<T> context, TProperty value)
-    //     {
-    //         IFormFile file = (IFormFile)value!;
-    //         return file.IsValidContentType(_mediatype);
-    //     }
+    //    public override bool IsValid(ValidationContext<T> context, TProperty value)
+    //    {
+    //        IFormFile file = (IFormFile)value!;
+    //        return file.IsValidContentType(_mediatype);
+    //    }
 
-    //     protected override string GetDefaultMessageTemplate(string errorCode)
-    //       => "'{PropertyName}' is invalid content type";
-    // }
-    
+    //    protected override string GetDefaultMessageTemplate(string errorCode)
+    //      => "'{PropertyName}' is invalid content type";
+    //}
+
     // public interface IGlobalValidation<TEntity> where TEntity : class
     // {
     //     Task<bool> IsExistId<TId>(TId id, CancellationToken cancellationToken = default) where TId : notnull;
-    //     bool IsExistProperty(Expression<Func<TEntity, bool>> expression);
+    //     bool IsExistProperty(Expression<Func<TEntity, bool>> expression, params Expression<Func<T,bool>> inclueProperties);
     // }
     // public class GlobalValidation<TEntity> : RepositoryBase<TEntity>, IGlobalValidation<TEntity>, IDisposable where TEntity : BaseEntity
     // {

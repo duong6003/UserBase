@@ -31,6 +31,7 @@ public class Messages
 
         public const string IdNotFound = "Mes.Users.Id.NotFound";
         public const string IdIsRequired = "Mes.Users.Id.IsRequired";
+        public const string UserIdInCorrect = "Mes.Users.Id.InCorrect";
         public const string ResetCodeNotValid = "Mes.Users.ResetCode.NotValid";
         public const string ResetPasswordSuccesfully = "Mes.Users.ResetPassword.Succesfully";
 
@@ -49,7 +50,9 @@ public class Messages
         public const string UserIsLocked = "Mes.Users.IsLocked";
         public const string GetDetailSuccessfully = "Mes.Users.GetDetail.Successfully";
 
+        public const string UserAvatarInValid = "Mes.Users.Avatar.InValid";
         public const string UserResetCodeValid = "Mes.Users.UserResetCode.Valid";
+        public const string UserResetCodeExpire = "Mes.Users.UserResetCode.Expire";
         public const string UserResetCodeInvalid = "Mes.Users.UserResetCode.Invalid";
         public const string UserResetSuccesfully = "Mes.Users.UserReset.Succesfully";
     }
@@ -58,6 +61,7 @@ public class Messages
     {
         public const string NameEmpty = "Mes.Roles.Name.NameIsEmpty";
         public const string NameInValid = "Mes.Roles.Name.InValid";
+
 
         public const string IdNotFound = "Mes.Roles.Id.NotFound";
         public const string IdIsRequired = "Mes.Roles.Id.IsRequired";
@@ -70,14 +74,29 @@ public class Messages
     [DisplayName("RolePermissions")]
     public static class RolePermissions
     {
+        public const string RolePermissionNotExist = "Mes.RolePermissions.NotExist";
         public const string NameInValid = "Mes.RolePermissions.Name.InValid";
-         public const string IdNotFound = "Mes.RolePermissions.Id.NotFound";
+        public const string IdNotFound = "Mes.RolePermissions.Id.NotFound";
         public const string IdIsRequired = "Mes.RolePermissions.Id.IsRequired";
         public const string UpdateRolePermissionSuccessfully = "Mes.RolePermissions.Update.Successfully";
         public const string DeleteRolePermissionSuccessfully = "Mes.RolePermissions.Delete.Successfully";
         public const string CreateSuccessfully = "Mes.RolePermissions.Create.Successfully";
         public const string GetAllSuccessfully = "Mes.RolePermissions.GetAll.Successfully";
         public const string GetDetailSuccessfully = "Mes.RolePermissions.GetDetail.Successfully";
+    }
+    [DisplayName("UserPermissions")]
+    public static class UserPermissions
+    {
+        public const string UserPermissionNotExist = "Mes.UserPermissions.NotExist";
+        public const string UserPermissionIsExisted = "Mes.UserPermissions.IsExisted";
+        public const string NameInValid = "Mes.UserPermissions.Name.InValid";
+        public const string IdNotFound = "Mes.UserPermissions.Id.NotFound";
+        public const string IdIsRequired = "Mes.UserPermissions.Id.IsRequired";
+        public const string UpdateUserPermissionSuccessfully = "Mes.UserPermissions.Update.Successfully";
+        public const string DeleteUserPermissionSuccessfully = "Mes.UserPermissions.Delete.Successfully";
+        public const string CreateSuccessfully = "Mes.UserPermissions.Create.Successfully";
+        public const string GetAllSuccessfully = "Mes.UserPermissions.GetAll.Successfully";
+        public const string GetDetailSuccessfully = "Mes.UserPermissions.GetDetail.Successfully";
     }
     [DisplayName("Permissions")]
     public static class Permissions

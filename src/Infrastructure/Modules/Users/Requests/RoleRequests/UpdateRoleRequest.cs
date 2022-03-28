@@ -6,6 +6,6 @@ namespace Infrastructure.Modules.Users.Requests.RoleRequests
     public class UpdateRoleRequest
     {
         public string? Name { get; set; }
-        public ICollection<UpdateRolePermissionRequest>? RolePermissions { get; set; }
+        public IList<UpdateRolePermissionRequest>? RolePermissions { get; set; }
     }
 }

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Text.Encodings.Web;
 using Infrastructure.Persistence.ServiceHelpers.SendMailService;
 using Infrastructure.Persistence.ServiceHelpers;
+using Infrastructure.Modules.Users.Requests.UserPermissionRequests;
 
 namespace Web.Controllers.Users
 {
@@ -36,6 +37,30 @@ namespace Web.Controllers.Users
             }
             return Ok(user, Messages.Users.GetDetailSuccessfully);
         }
+        [HttpPost("{userId}/UserPermissions")]
+        [AllowAnonymous]
+        public async Task<IActionResult> AddUserPermission(Guid userId, [FromBody] List<CreateUserPermissionRequest> request)
+        {
+            User? user = await UserService.GetByIdAsync(userId);
+            if(user == null) return BadRequest(Messages.Users.IdNotFound);
+            if (request.Any(x => x.UserId != user.Id)) return Ok(user, Messages.Users.UserIdInCorrect);
+
+            (User? newUser, string? ErrorMessage) = await UserService.AddUserPermissionAsync(user, request);
+            if (ErrorMessage is not null) return BadRequest(ErrorMessage);
+            return Ok(newUser, Messages.Users.CreateSuccessfully);
+        }
+        [HttpDelete("{userId}/UserPermissions")]
+        [AllowAnonymous]
+        public async Task<IActionResult> DeleteUserPermission(Guid userId, [FromBody] List<DeleteUserPermissionRequest> request)
+        {
+            User? user = await UserService.GetByIdAsync(userId);
+            if(user == null) return BadRequest(Messages.Users.IdNotFound);
+            if (request.Any(x => x.UserId != user.Id)) return Ok(user, Messages.Users.UserIdInCorrect);
+
+            (User? newUser, string? ErrorMessage) = await UserService.DeleteUserPermissionAsync(user, request);
+            if (ErrorMessage is not null) return BadRequest(ErrorMessage);
+            return Ok(newUser, Messages.Users.CreateSuccessfully);
+        }
         [HttpPost("signup")]
         [AllowAnonymous]
         public async Task<IActionResult> SignUp([FromForm] UserSignUpRequest request)
@@ -53,13 +78,23 @@ namespace Web.Controllers.Users
             return Ok(AccesToken, Messages.Users.LoginSuccess);
         }
         [HttpPut("{userId}")]
-        public async Task<IActionResult> Update(Guid userId,[FromBody]UserUpdateRequest request)
+        public async Task<IActionResult> Update(Guid userId, [FromBody] UserUpdateRequest request)
         {
             User? user = await UserService.GetByIdAsync(userId);
             if (user == null) return BadRequest(Messages.Users.IdNotFound);
 
             (User? newUser, string? errorMessage) = await UserService.UpdateAsync(user, request);
             if (errorMessage is not null) return BadRequest(errorMessage);
+
+            return Ok(newUser, Messages.Users.LoginSuccess);
+        }
+        [HttpDelete("{userId}")]
+        public async Task<IActionResult> Delete(Guid userId)
+        {
+            User? user = await UserService.GetByIdAsync(userId);
+            if (user == null) return BadRequest(Messages.Users.IdNotFound);
+
+            (User? newUser, string? errorMessage) = await UserService.DeleteAsync(user);
 
             return Ok(newUser, Messages.Users.LoginSuccess);
         }
@@ -71,7 +106,7 @@ namespace Web.Controllers.Users
             // For more information on how to enable account confirmation and password reset please
             // visit https://go.microsoft.com/fwlink/?LinkID=532713
             string code = UserService.GeneratePasswordResetTokenAsync(user!);
-            var callbackUrl = Url.ResetPasswordCallbackLink(nameof(UsersController.ResetPassword), user!.Id, code, Request.Scheme);
+            var callbackUrl = Url.ResetPasswordCallbackLink(nameof(UsersController.ResetPassword), user!.Id, code, DateTime.UtcNow.AddMinutes(5) , Request.Scheme);
 
             await SendEmailService.SendEmailAsync(request.Email, "Reset Password", $"Please reset your password by clicking here: <a href='{callbackUrl}'>link</a>");
 
@@ -79,16 +114,30 @@ namespace Web.Controllers.Users
         }
         [HttpPost("confirm")]
         [AllowAnonymous]
-        public async Task<IActionResult> ForgotPasswordConfirm([FromQuery]Guid userId, [FromQuery]string code)
+        public async Task<IActionResult> ForgotPasswordConfirm([FromQuery] Guid userId, [FromQuery] string code, [FromQuery] DateTime expireTime)
         {
-            return Ok(await UserService.ConfirmResetPassword(userId, code));
+            return Ok(code ,await UserService.ConfirmResetPassword(userId, code, expireTime));
         }
-        [HttpPost("reset")]
+        [HttpPost("{userId}/{code}/resetbyconfirm}")]
         [AllowAnonymous]
-        public async Task<IActionResult> ResetPassword([FromBody]ResetPasswordRequest request)
+        public async Task<IActionResult> ResetPasswordByConfirm([FromQuery] Guid userId, [FromQuery] string code, ResetPasswordRequest request)
         {
-            User? user = await UserService.GetByEmailAsync(request.Email!);
-            (User? updateUser, string? errorMessage) = await UserService.ResetPassword(request);
+            User? user = await UserService.GetByIdAsync(userId);
+            if(user is null) return BadRequest(Messages.Users.IdNotFound);
+            (User? updateUser, string? errorMessage) = await UserService.ResetPasswordByConfirm(user!, code, request);
+            if (errorMessage != null)
+            {
+                return BadRequest(errorMessage);
+            }
+            return Ok(updateUser, Messages.Users.ResetPasswordSuccesfully);
+        }
+        [HttpPost("reset/{userId}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword([FromQuery] Guid userId, [FromBody] ResetPasswordRequest request)
+        {
+            User? user = await UserService.GetByIdAsync(userId);
+            if(user is null) return BadRequest(Messages.Users.IdNotFound);
+            (User? updateUser, string? errorMessage) = await UserService.ResetPassword(user!, request);
             if (errorMessage != null)
             {
                 return BadRequest(errorMessage);

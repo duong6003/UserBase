@@ -1,23 +1,48 @@
 using AutoMapper;
 using Envelop.App.Ultilities;
+using Hangfire;
 using Infrastructure.Definitions;
 using Infrastructure.Modules.Users.Entities;
-using Infrastructure.Modules.Users.Requests.RolePermissionRequests;
 using Infrastructure.Modules.Users.Requests.RoleRequests;
 using Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Infrastructure.Modules.Users.Services
 {
+    //public class RolePermissionCompare : IEqualityComparer<RolePermission>
+    //{
+    //    public bool Equals(RolePermission? x, RolePermission? y)
+    //    {
+    //        return x!.RoleId == y!.RoleId && x.Code == y.Code;
+    //    }
+
+    //    public int GetHashCode([DisallowNull] RolePermission obj)
+    //    {
+    //        unchecked
+    //        {
+    //            if (obj == null)
+    //                return 0;
+    //            return obj.GetHashCode();
+    //        }
+    //    }
+    //}
+
     public interface IRoleService
     {
         Task<Role?> GetByIdAsync(Guid roleId);
+
         Task<(Role? Role, string? ErrorMessage)> GetDetailAsync(Guid roleId);
+
         Task<(PaginationResponse<Role>, string? ErrorMessage)> GetAllAsync(PaginationRequest request);
+
         Task<(Role? Role, string? ErrorMessage)> CreateAsync(CreateRoleRequest request);
+
         Task<(Role? Role, string? ErrorMessage)> UpdateAsync(Role role, UpdateRoleRequest request);
+
         Task<(Role? Role, string? ErrorMessage)> DeleteAsync(Role role);
     }
+
     public class RoleService : IRoleService
     {
         private readonly IRepositoryWrapper RepositoryWrapper;
@@ -28,6 +53,7 @@ namespace Infrastructure.Modules.Users.Services
             RepositoryWrapper = repositoryWrapper;
             Mapper = mapper;
         }
+
         public async Task<(Role? Role, string? ErrorMessage)> CreateAsync(CreateRoleRequest request)
         {
             Role? role = Mapper.Map<Role>(request);
@@ -47,7 +73,7 @@ namespace Infrastructure.Modules.Users.Services
                 (
                     string.IsNullOrEmpty(request.SearchContent)
                     || x.Name!.ToLower().Contains(request.SearchContent!.ToLower())
-                )).Include(x=> x.RolePermissions);
+                )).Include(x => x.RolePermissions);
             roles = SortUtility<Role>.ApplySort(roles, request.OrderByQuery!);
             PaginationUtility<Role>? data = await PaginationUtility<Role>.ToPagedListAsync(roles, request.PageNumber, request.PageSize);
             return (PaginationResponse<Role>.PaginationInfo(data, data.PageInfo), Messages.Roles.GetAllSuccessfully);
@@ -60,7 +86,7 @@ namespace Infrastructure.Modules.Users.Services
 
         public async Task<(Role? Role, string? ErrorMessage)> GetDetailAsync(Guid roleId)
         {
-            Role? role = await RepositoryWrapper.Roles.FindByCondition(x=> x.Id == roleId).Include(x=> x.RolePermissions).FirstOrDefaultAsync();
+            Role? role = await RepositoryWrapper.Roles.FindByCondition(x => x.Id == roleId).Include(x => x.RolePermissions).FirstOrDefaultAsync();
             if (role is null)
             {
                 return (null, Messages.Roles.IdNotFound);
@@ -70,36 +96,55 @@ namespace Infrastructure.Modules.Users.Services
 
         public async Task<(Role? Role, string? ErrorMessage)> UpdateAsync(Role role, UpdateRoleRequest request)
         {
-            //Get role permisstion Detail
-            var newRolePermissions = request.RolePermissions;
+            //db role permission no tracking
+            var entities = RepositoryWrapper.RolePermissions.FindByCondition(x => x.RoleId == role.Id, isAsNoTracking: true);
 
-            //new role permissions added
-            var addedRolePermissionsReq = newRolePermissions!.Where(x => x.Id == Guid.Empty).ToList();
+            //add role permisstion
+            var addedRolePermissionsReq = request.RolePermissions!.Where(x => entities.All(v => v.RoleId == x.RoleId && v.Code != x.Code));
             var addedRolePermissions = Mapper.Map<List<RolePermission>>(addedRolePermissionsReq);
-
-            //get updated role permissions
-            var updatedRolePermissionsReq = newRolePermissions!.Where(x => x.Id != Guid.Empty).ToList();
+            //update role permisstion
+            var updatedRolePermissionsReq = request.RolePermissions!.Where(x => entities.Any(v => v.RoleId == x.RoleId && v.Code == x.Code));
             var updatedRolePermissions = Mapper.Map<List<RolePermission>>(updatedRolePermissionsReq);
 
-            //Existed RolePermissions
-            var existedRolePermissions = RepositoryWrapper.RolePermissions.FindByCondition(x => x.RoleId == role.Id).ToList();
-
-            foreach (var rolePermission in addedRolePermissions)
+            //get deleted role permissions
+            List<RolePermission> deletedRolePermissions = new();
+            foreach (var update in updatedRolePermissions)
             {
-                await RepositoryWrapper.RolePermissions.AddAsync(rolePermission);
+                foreach (var entity in entities)
+                {
+                    if (entity.RoleId == update.RoleId && entity.Code != update.Code)
+                    {
+                        deletedRolePermissions.Add(entity);
+                    }
+                }
             }
-
-            foreach (var rolePermission in updatedRolePermissions)
+            using var transaction = RepositoryWrapper.BeginTransactionAsync();
             {
-                await RepositoryWrapper.RolePermissions.UpdateAsync(rolePermission);
+                try
+                {
+                    foreach (var rolePermission in addedRolePermissions)
+                    {
+                        await RepositoryWrapper.RolePermissions.AddAsync(rolePermission);
+                    }
+
+                    foreach (var rolePermission in updatedRolePermissions)
+                    {
+                        await RepositoryWrapper.RolePermissions.UpdateAsync(rolePermission);
+                    }
+
+                    Mapper.Map(request, role);
+                    await RepositoryWrapper.Roles.UpdateAsync(role);
+                    await RepositoryWrapper.CommitTransactionAsync();
+
+                    await RepositoryWrapper.RolePermissions.DeleteRangeAsync(deletedRolePermissions);
+                }
+                catch (Exception ex)
+                {
+                    await RepositoryWrapper.RollbackTransactionAsync();
+                    BackgroundJob.Enqueue(() => Console.WriteLine($"--> Add new role permission failed: {ex.Message}"));
+                }
             }
-
-            await RepositoryWrapper.RolePermissions.DeleteRangeAsync(existedRolePermissions.Except(updatedRolePermissions));
-
-            role.Name = request.Name;
-
-            await RepositoryWrapper.Roles.UpdateAsync(role);
-            return(role, null);
+            return (role, null);
         }
     }
 }

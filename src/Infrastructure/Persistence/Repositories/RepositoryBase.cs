@@ -24,20 +24,15 @@ public interface IRepositoryBase<T> where T : class
     IQueryable<T> FindAll(bool isAsNoTracking = default);
 
     IQueryable<T> FindByCondition(Expression<Func<T, bool>> expression, bool isAsNoTracking = default);
-    Task<bool> IsExistId<TId>(TId? id, CancellationToken cancellationToken = default);
-    Task<bool> IsExistProperty(Expression<Func<T, bool>> expression);
+    Task<bool> IsAnyValue(Expression<Func<T, bool>> expression);
 }
 
-public class RepositoryBase<T> : IRepositoryBase<T> where T : BaseEntity
+public class RepositoryBase<T> : IRepositoryBase<T> where T : class
 {
     private readonly ApplicationDbContext DbContext;
 
     public RepositoryBase(ApplicationDbContext dbContext) => DbContext = dbContext;
-    public async Task<bool> IsExistId<Tid>(Tid? id, CancellationToken cancellationToken = default)
-    {
-        return await DbContext.Set<T>().AnyAsync(x=> x.Id.Equals(id));
-    }
-    public async Task<bool> IsExistProperty(Expression<Func<T, bool>> expression)
+    public async Task<bool> IsAnyValue(Expression<Func<T, bool>> expression)
     {
         return await DbContext.Set<T>().AnyAsync(expression);
     }

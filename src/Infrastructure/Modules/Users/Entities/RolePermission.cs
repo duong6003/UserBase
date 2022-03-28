@@ -1,12 +1,15 @@
 ﻿using Core.Bases;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Infrastructure.Modules.Users.Entities
 {
-    public class RolePermission : BaseEntity
+    public class RolePermission
     {
         public Guid RoleId { get; set; }
+        [ForeignKey("RoleId")]
         public Role? Role { get; set; }
-        public Guid PermissionId { get; set; }
+        public string? Code { get; set; }
+        [ForeignKey("Code")]
         public Permission? Permission { get; set; }
 
     }

@@ -14,7 +14,7 @@ namespace Infrastructure.Modules.Users.Validations.PermissionValidations
             RepositoryWrapper = repositoryWrapper;
             RuleFor(x => x.Code)
                 .NotEmpty().WithMessage(Messages.Permissions.CodeEmpty)
-                .MustAsync(async(code, cancellationToken) => !await RepositoryWrapper.Permissions.IsAnyValue(x=> x.Code == code))
+                .MustAsync(async (code, cancellationToken) => !await RepositoryWrapper.Permissions.IsAnyValue(x => x.Code == code))
                 .WithMessage(Messages.Permissions.CodeExisted);
             RuleFor(x => x.Name).NotEmpty().WithMessage(Messages.Permissions.NameEmpty);
         }

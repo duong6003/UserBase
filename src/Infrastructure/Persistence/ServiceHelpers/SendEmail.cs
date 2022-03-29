@@ -1,4 +1,3 @@
-
 using Hangfire;
 using MailKit.Net.Smtp;
 using MailKit.Security;
@@ -11,7 +10,6 @@ namespace Infrastructure.Persistence.ServiceHelpers.SendMailService
     public interface ISendEmail
     {
         Task SendEmailAsync(string? toEmail, string? subject, string body);
-
     }
 
     public class SendEmail : ISendEmail
@@ -32,7 +30,7 @@ namespace Infrastructure.Persistence.ServiceHelpers.SendMailService
             email.Subject = subject;
             var builder = new BodyBuilder();
             email.Body = new TextPart(TextFormat.Html) { Text = body };
-            
+
             using var smtp = new SmtpClient();
             try
             {

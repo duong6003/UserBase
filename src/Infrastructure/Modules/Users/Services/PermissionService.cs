@@ -10,6 +10,7 @@ namespace Infrastructure.Modules.Users.Services
     public interface IPermissionService
     {
         Task<Permission?> GetByIdAsync(Guid permissionId);
+
         Task<(PaginationResponse<Permission>, string? ErrorMessage)> GetAllAsync(PaginationRequest request);
 
         Task<(Permission? Permission, string? ErrorMessage)> CreateAsync(CreatePermissionRequest request);
@@ -18,6 +19,7 @@ namespace Infrastructure.Modules.Users.Services
 
         Task<(Permission? Permission, string? ErrorMessage)> DeleteAsync(Permission permission);
     }
+
     public class PermissionService : IPermissionService
     {
         private readonly IRepositoryWrapper RepositoryWrapper;
@@ -28,17 +30,20 @@ namespace Infrastructure.Modules.Users.Services
             RepositoryWrapper = repositoryWrapper;
             Mapper = mapper;
         }
-         public async Task<(Permission? Permission, string? ErrorMessage)> CreateAsync(CreatePermissionRequest request)
+
+        public async Task<(Permission? Permission, string? ErrorMessage)> CreateAsync(CreatePermissionRequest request)
         {
             Permission? permission = Mapper.Map<Permission>(request);
             await RepositoryWrapper.Permissions.AddAsync(permission);
-            return (permission , null);
+            return (permission, null);
         }
+
         public async Task<(Permission? Permission, string? ErrorMessage)> DeleteAsync(Permission permission)
         {
             await RepositoryWrapper.Permissions.DeleteAsync(permission);
             return (permission, null);
         }
+
         public async Task<(PaginationResponse<Permission>, string? ErrorMessage)> GetAllAsync(PaginationRequest request)
         {
             IQueryable<Permission>? permissions = RepositoryWrapper.Permissions.FindByCondition(x =>
@@ -51,15 +56,17 @@ namespace Infrastructure.Modules.Users.Services
             PaginationUtility<Permission>? data = await PaginationUtility<Permission>.ToPagedListAsync(permissions, request.PageNumber, request.PageSize);
             return (PaginationResponse<Permission>.PaginationInfo(data, data.PageInfo), Messages.Permissions.GetAllSuccessfully);
         }
+
         public async Task<Permission?> GetByIdAsync(Guid permissionId)
         {
             return await RepositoryWrapper.Permissions.GetByIdAsync(permissionId);
         }
+
         public async Task<(Permission? Permission, string? ErrorMessage)> UpdateAsync(Permission permission, UpdatePermissionRequest request)
         {
             Mapper.Map(request, permission);
             await RepositoryWrapper.Permissions.UpdateAsync(permission);
-            return (permission , null);
+            return (permission, null);
         }
     }
 }

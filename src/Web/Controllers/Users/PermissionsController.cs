@@ -19,7 +19,8 @@ namespace Web.Controllers.Users
         {
             PermissionService = permissionService;
         }
-           /// <summary>
+
+        /// <summary>
         /// Get All Permission
         /// </summary>
         [HttpGet("GetAll")]
@@ -28,6 +29,7 @@ namespace Web.Controllers.Users
             (PaginationResponse<Permission> permissions, string? errorMessage) = await PermissionService.GetAllAsync(request);
             return Ok(permissions, Messages.Permissions.GetAllSuccessfully);
         }
+
         /// <summary>
         /// Upload Permission
         /// </summary>
@@ -52,7 +54,6 @@ namespace Web.Controllers.Users
             (Permission? newPermission, string? errorMessage) = await PermissionService.UpdateAsync(permission, request);
             return Ok(newPermission, Messages.Permissions.UpdatePermissionSuccessfully);
         }
-
 
         /// <summary>
         /// Delete Permission

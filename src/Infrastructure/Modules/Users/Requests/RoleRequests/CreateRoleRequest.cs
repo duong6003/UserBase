@@ -1,4 +1,3 @@
-using Infrastructure.Modules.Users.Entities;
 using Infrastructure.Modules.Users.Requests.RolePermissionRequests;
 
 namespace Infrastructure.Modules.Users.Requests.RoleRequests

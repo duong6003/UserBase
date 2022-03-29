@@ -13,7 +13,7 @@ namespace Infrastructure.Modules.Users.Validations.UserPermissionValidations
         {
             RepositoryWrapper = repositoryWrapper;
             RuleFor(x => x)
-                .MustAsync(async(per, cancellationToken) 
+                .MustAsync(async (per, cancellationToken)
                 => await RepositoryWrapper.UserPermissions.IsAnyValue(x => x.UserId == per.UserId && x.Code == per.Code))
                 .WithMessage(Messages.UserPermissions.UserPermissionNotExist);
         }

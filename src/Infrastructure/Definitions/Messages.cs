@@ -56,12 +56,12 @@ public class Messages
         public const string UserResetCodeInvalid = "Mes.Users.UserResetCode.Invalid";
         public const string UserResetSuccesfully = "Mes.Users.UserReset.Succesfully";
     }
+
     [DisplayName("Roles")]
     public static class Roles
     {
         public const string NameEmpty = "Mes.Roles.Name.NameIsEmpty";
         public const string NameInValid = "Mes.Roles.Name.InValid";
-
 
         public const string IdNotFound = "Mes.Roles.Id.NotFound";
         public const string IdIsRequired = "Mes.Roles.Id.IsRequired";
@@ -71,6 +71,7 @@ public class Messages
         public const string GetAllSuccessfully = "Mes.Roles.GetAll.Successfully";
         public const string GetDetailSuccessfully = "Mes.Roles.GetDetail.Successfully";
     }
+
     [DisplayName("RolePermissions")]
     public static class RolePermissions
     {
@@ -84,6 +85,7 @@ public class Messages
         public const string GetAllSuccessfully = "Mes.RolePermissions.GetAll.Successfully";
         public const string GetDetailSuccessfully = "Mes.RolePermissions.GetDetail.Successfully";
     }
+
     [DisplayName("UserPermissions")]
     public static class UserPermissions
     {
@@ -98,6 +100,7 @@ public class Messages
         public const string GetAllSuccessfully = "Mes.UserPermissions.GetAll.Successfully";
         public const string GetDetailSuccessfully = "Mes.UserPermissions.GetDetail.Successfully";
     }
+
     [DisplayName("Permissions")]
     public static class Permissions
     {
@@ -112,6 +115,5 @@ public class Messages
         public const string CreateSuccessfully = "Mes.Permissions.Create.Successfully";
         public const string GetAllSuccessfully = "Mes.Permissions.GetAll.Successfully";
         public const string GetDetailSuccessfully = "Mes.Permissions.GetDetail.Successfully";
-
     }
 }

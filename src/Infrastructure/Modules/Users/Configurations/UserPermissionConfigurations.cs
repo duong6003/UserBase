@@ -1,11 +1,6 @@
 ﻿using Infrastructure.Modules.Users.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Modules.Users.Configurations
 {
@@ -15,7 +10,7 @@ namespace Infrastructure.Modules.Users.Configurations
         {
             entityTypeBuilder.ToTable("user_permission");
 
-            entityTypeBuilder.HasKey(x => new {x.UserId, x.Code});
+            entityTypeBuilder.HasKey(x => new { x.UserId, x.Code });
         }
     }
 }

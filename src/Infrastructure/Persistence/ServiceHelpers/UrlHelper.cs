@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
 
 namespace Infrastructure.Persistence.ServiceHelpers
 {
@@ -14,7 +13,7 @@ namespace Infrastructure.Persistence.ServiceHelpers
         //         protocol: scheme)!;
         // }
 
-        public static string ResetPasswordCallbackLink(this IUrlHelper urlHelper,string controller ,Guid userId, string code, DateTime expireTime, string scheme)
+        public static string ResetPasswordCallbackLink(this IUrlHelper urlHelper, string controller, Guid userId, string code, DateTime expireTime, string scheme)
         {
             return urlHelper.Action(
                 action: controller!,

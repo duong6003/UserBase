@@ -2,7 +2,6 @@ using FluentValidation.AspNetCore;
 using Hangfire;
 using HealthChecks.UI.Client;
 using Infrastructure;
-using Infrastructure.Persistence.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +10,6 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Serilog;
-using System.Reflection;
 using System.Text;
 using Web.Exceptions;
 using Web.OpenAPISpecification;
@@ -24,6 +22,7 @@ try
     var builder = WebApplication.CreateBuilder(args);
 
     #region Add Configuration
+
     builder.Host.ConfigureAppConfiguration((context, configureDelegate) =>
     {
         configureDelegate.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -31,9 +30,11 @@ try
             .AddEnvironmentVariables(prefix: "MXM_");
     });
     IConfiguration Configuration = builder.Configuration;
-    #endregion
+
+    #endregion Add Configuration
 
     #region Add Health Checks
+
     builder.Services.AddHealthChecks().AddMySql
     (
         connectionString: Configuration["DatabaseSettings:MySQLSettings:ConnectionStrings:DefaultConnection"]
@@ -41,16 +42,20 @@ try
     .AddUrlGroup(new Uri("https://httpstatuses.com/200"));
 
     builder.Services.AddHealthChecksUI().AddInMemoryStorage();
-    #endregion
+
+    #endregion Add Health Checks
 
     #region Add Serilog
+
     builder.Host.UseSerilog((_, configureLogger) =>
     {
         configureLogger.ReadFrom.Configuration(Configuration);
     });
-    #endregion
+
+    #endregion Add Serilog
 
     #region Add Jwt Bearer
+
     builder.Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -68,9 +73,11 @@ try
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration["JwtSettings:SecretKey"]))
         };
     });
-    #endregion
+
+    #endregion Add Jwt Bearer
 
     #region Add Swagger/OpenAPI
+
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>
     {
@@ -86,9 +93,11 @@ try
 
         options.OperationFilter<SecurityRequirementsOperationFilter>();
     });
-    #endregion
+
+    #endregion Add Swagger/OpenAPI
 
     #region Add Cors Policy
+
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowSpecificOrigin", builder =>
@@ -108,13 +117,17 @@ try
                     .AllowAnyHeader();
         });
     });
-    #endregion
+
+    #endregion Add Cors Policy
 
     #region Add Infrastructure Configure Services
+
     builder.Services.AddInfrastructureConfigureServices(Configuration);
-    #endregion
+
+    #endregion Add Infrastructure Configure Services
 
     #region Add Extensions
+
     builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
     {
         options.InvalidModelStateResponseFactory = context =>
@@ -130,7 +143,8 @@ try
     {
         options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
     });
-    #endregion
+
+    #endregion Add Extensions
 
     var app = builder.Build();
 

@@ -1,6 +1,4 @@
-﻿using Core.Bases;
-
-namespace Infrastructure.Modules.Users.Entities
+﻿namespace Infrastructure.Modules.Users.Entities
 {
     public class Permission
     {

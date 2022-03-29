@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Core.Utilities;
 using Envelop.App.Ultilities;
-using Hangfire;
 using Infrastructure.Definitions;
 using Infrastructure.Modules.Users.Entities;
 using Infrastructure.Modules.Users.Requests.UserPermissionRequests;
@@ -33,9 +32,13 @@ public interface IUserService
     Task<(User? User, string? ErrorMessage)> UpdateAsync(User user, UserUpdateRequest request);
 
     Task<(User? User, string? ErrorMessage)> DeleteAsync(User user);
+
     Task<(User User, string? ErrorMessage)> AddUserPermissionAsync(User user, List<CreateUserPermissionRequest> request);
+
     Task<(User User, string? ErrorMessage)> DeleteUserPermissionAsync(User user, List<DeleteUserPermissionRequest> request);
+
     Task<User?> GetAllPermissionAsync(User user);
+
     Task<string> GenerateAccessTokenAsync(User user);
 
     Task<string> GenerateRefreshTokenAsync();
@@ -47,7 +50,8 @@ public interface IUserService
     Task<(User? User, string? ErrorMessage)> ResetPassword(User user, ResetPasswordRequest request);
 
     Task<string> ConfirmResetPassword(Guid userId, string code, DateTime expireTime);
-    Task<(User? User, string? ErrorMessage)> ResetPasswordByConfirm(User user, string code ,ResetPasswordRequest request);
+
+    Task<(User? User, string? ErrorMessage)> ResetPasswordByConfirm(User user, string code, ResetPasswordRequest request);
 }
 
 public class UserService : IUserService
@@ -180,6 +184,7 @@ public class UserService : IUserService
         PaginationUtility<User>? data = await PaginationUtility<User>.ToPagedListAsync(users, request.PageNumber, request.PageSize);
         return (PaginationResponse<User>.PaginationInfo(data, data.PageInfo), Messages.Users.GetAllSuccessfully);
     }
+
     public async Task<(User User, string? ErrorMessage)> AddUserPermissionAsync(User user, List<CreateUserPermissionRequest> request)
     {
         List<UserPermission> newUserRolePermissions = Mapper.Map<List<UserPermission>>(request);
@@ -187,6 +192,7 @@ public class UserService : IUserService
         User? newUser = await GetAllPermissionAsync(user);
         return (newUser!, null);
     }
+
     public async Task<(User User, string? ErrorMessage)> DeleteUserPermissionAsync(User user, List<DeleteUserPermissionRequest> request)
     {
         List<UserPermission> deletedUserRolePermissions = Mapper.Map<List<UserPermission>>(request);
@@ -194,9 +200,9 @@ public class UserService : IUserService
         User? newUser = await GetAllPermissionAsync(user);
         return (newUser!, null);
     }
+
     public async Task<(User? User, string? ErrorMessage)> UpdateAsync(User user, UserUpdateRequest request)
     {
-
         if (user.RoleId != request.RoleId)
         {
             var oldUserRolePermissions = await RepositoryWrapper.RolePermissions
@@ -254,7 +260,7 @@ public class UserService : IUserService
 
     public async Task<string> ConfirmResetPassword(Guid userId, string code, DateTime expireTime)
     {
-        if(DateTime.UtcNow.CompareTo(expireTime) < 0) return Messages.Users.UserResetCodeExpire;
+        if (DateTime.UtcNow.CompareTo(expireTime) < 0) return Messages.Users.UserResetCodeExpire;
         User? user = await RepositoryWrapper.Users.GetByIdAsync(userId);
         if (user is null) return Messages.Users.IdNotFound;
         if (user!.ResetCode != code) return Messages.Users.UserResetCodeInvalid;
@@ -268,9 +274,10 @@ public class UserService : IUserService
         await RepositoryWrapper.Users.UpdateAsync(user);
         return (user, Messages.Users.UserResetSuccesfully);
     }
+
     public async Task<(User? User, string? ErrorMessage)> ResetPasswordByConfirm(User user, string code, ResetPasswordRequest request)
     {
-        if(user!.ResetCode != code) return (user, Messages.Users.ResetCodeNotValid);
+        if (user!.ResetCode != code) return (user, Messages.Users.ResetCodeNotValid);
 
         string newPassword = user!.Password!.HashPassword();
         user.Password = newPassword;

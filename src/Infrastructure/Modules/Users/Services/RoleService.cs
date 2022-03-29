@@ -1,6 +1,5 @@
 using AutoMapper;
 using Envelop.App.Ultilities;
-using Hangfire;
 using Infrastructure.Definitions;
 using Infrastructure.Modules.Users.Entities;
 using Infrastructure.Modules.Users.Requests.RoleRequests;
@@ -13,25 +12,26 @@ namespace Infrastructure.Modules.Users.Services
 {
     public class RolePermissionCompare : IEqualityComparer<RolePermission>
     {
-       public bool Equals(RolePermission? x, RolePermission? y)
-       {
-           return x!.RoleId == y!.RoleId && x.Code == y.Code;
-       }
+        public bool Equals(RolePermission? x, RolePermission? y)
+        {
+            return x!.RoleId == y!.RoleId && x.Code == y.Code;
+        }
 
-       public int GetHashCode([DisallowNull] RolePermission obj)
-       {
-           unchecked
-           {
-               if (obj == null)
-                   return 0;
-               return obj.GetHashCode();
-           }
-       }
+        public int GetHashCode([DisallowNull] RolePermission obj)
+        {
+            unchecked
+            {
+                if (obj == null)
+                    return 0;
+                return obj.GetHashCode();
+            }
+        }
     }
 
     public interface IRoleService
     {
         Task<Role?> GetByIdAsync(Guid roleId);
+
         Task<Role?> GetAllRolePermission(Role role);
 
         Task<(Role? Role, string? ErrorMessage)> GetDetailAsync(Guid roleId);
@@ -61,7 +61,7 @@ namespace Infrastructure.Modules.Users.Services
             Role? role = Mapper.Map<Role>(request);
             await RepositoryWrapper.Roles.AddAsync(role);
             Role? newRole = await GetAllRolePermission(role);
-            return (newRole , null);
+            return (newRole, null);
         }
 
         public async Task<(Role? Role, string? ErrorMessage)> DeleteAsync(Role role)
@@ -104,18 +104,21 @@ namespace Infrastructure.Modules.Users.Services
             }
             return (role, null);
         }
+
         private List<RolePermission> GetDeleteRolePermission(List<RolePermission> sources, List<RolePermission> excepts)
         {
             var comparer = new RolePermissionCompare();
             List<RolePermission> results = new();
-            sources.ForEach(source => {
-                if(!excepts.Any(except => comparer.Equals(except, source)))
+            sources.ForEach(source =>
+            {
+                if (!excepts.Any(except => comparer.Equals(except, source)))
                 {
                     results.Add(source);
                 }
             });
             return results;
         }
+
         public async Task<(Role? Role, string? ErrorMessage)> UpdateAsync(Role role, UpdateRoleRequest request)
         {
             //db role permission no tracking

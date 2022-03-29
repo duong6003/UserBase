@@ -2,12 +2,15 @@
 using Newtonsoft.Json;
 
 namespace Infrastructure.Modules.Users.Entities;
+
 public class User : BaseEntity
 {
     public string? UserName { get; set; }
-    public string? EmailAddress  { get; set; }
+    public string? EmailAddress { get; set; }
+
     [JsonIgnore]
     public string? Password { get; set; }
+
     public string? Avatar { get; set; }
     public byte Status { get; set; }
     public string? ResetCode { get; set; }

@@ -1,35 +1,32 @@
-using System.Linq.Expressions;
-using Core.Bases;
 using FluentValidation;
-using FluentValidation.Validators;
-using Infrastructure.Persistence.Contexts;
-using Infrastructure.Persistence.Repositories;
 using Microsoft.AspNetCore.Http;
-using static Infrastructure.Definitions.Messages;
 
 namespace Infrastructure.Persistence.GlobalValidation
 {
     public static class CommonValidationExtention
     {
-
         public static bool IsValidFile(this IFormFile? file, string contentType)
         {
-            if (file is null) return true; 
+            if (file is null) return true;
             return file!.ContentType.Contains(contentType);
         }
+
         public static IRuleBuilderOptions<T, IFormFile?> IsValidFile<T>(this IRuleBuilder<T, IFormFile?> ruleBuilder, string contentType)
         {
             return ruleBuilder.Must(file => file!.IsValidFile(contentType));
         }
+
         public static IRuleBuilderOptions<T, IFormFile?> IsValidSize<T>(this IRuleBuilder<T, IFormFile?> ruleBuilder, int size)
         {
             return ruleBuilder.Must(file => file!.Length <= size);
         }
+
         public static IRuleBuilderOptions<T, string?> IsValidVietNamName<T>(this IRuleBuilder<T, string?> ruleBuilder)
         {
             return ruleBuilder.Matches(@"^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s|_]+$");
         }
     }
+
     //public class ValidMediaTypeValidator<T, TProperty> : PropertyValidator<T, TProperty>
 
     //{
@@ -81,5 +78,4 @@ namespace Infrastructure.Persistence.GlobalValidation
     //     //     return FindByCondition(expression).Any();
     //     // }
     // }
-
 }

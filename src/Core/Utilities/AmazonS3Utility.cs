@@ -9,24 +9,39 @@ namespace Envelop.App.Ultilities
     public interface IAmazonS3Utility
     {
         Task<(string? PublicResourceUrl, string? ErrorMessage)> SaveFileAmazonS3Async(IFormFile formFile, string bucketName, string filePath, S3CannedACL s3CannedACL);
+
         Task<(string? PublicResourceUrl, string? ErrorMessage)> SaveFileAmazonS3Async(string filePathSource, string bucketName, string filePath, S3CannedACL s3CannedACL);
+
         Task<(string? PublicResourceUrl, string? ErrorMessage)> SaveFileAmazonS3Async(byte[] byteFile, string bucketName, string filePath, S3CannedACL s3CannedACL);
+
         Task<(string? PublicResourceUrl, string? ErrorMessage)> SaveFileAmazonS3Async(MemoryStream memoryStream, string bucketName, string filePath, S3CannedACL s3CannedACL);
+
         Task<(bool Result, string? ErrorMessage)> SaveFolderAmazonS3Async(string folderPath, string bucketName, S3CannedACL s3CannedACL, string searchPattern = "*", SearchOption searchOption = SearchOption.AllDirectories, string? keyPrefix = null);
+
         Task<(string? resourceUrl, string? errorMessage)> UpdateResourceAsync(IFormFile fromFile, string bucketName, S3CannedACL s3CannedACL, string newFilePath, string? filePath = null);
+
         Task<(string? resourceUrl, string? errorMessage)> UpdateResourceAsync(MemoryStream memoryStream, string bucketName, S3CannedACL s3CannedACL, string newFilePath, string? filePath = null);
+
         Task<(string? resourceUrl, string? errorMessage)> UpdateResourceAsync(string filePathSource, string bucketName, S3CannedACL s3CannedACL, string newFilePath, string? filePath = null);
+
         Task<(string? resourceUrl, string? errorMessage)> UpdateResourceAsync(byte[] byteFile, string bucketName, S3CannedACL s3CannedACL, string newFilePath, string? filePath = null);
+
         Task<(bool result, string? errorMessage)> DeleteResourceAsync(string bucketName, string? fileName);
+
         Task<(bool result, string? errorMessage)> DeleteMultipleResourceAsync(string bucketName, List<string> fileNames);
+
         string? GetResourceUrl(string bucketName, string filePath, DateTime expiredTime);
+
         string? GetPublicUrl(string publicDomain, string bucketName, string filePath);
+
         string? GetPath(string? resourceUrl);
     }
+
     public class AmazonS3Utility : IAmazonS3Utility
     {
         private readonly IConfiguration Configuration;
         private readonly IAmazonS3 S3Client;
+
         public AmazonS3Utility(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -37,9 +52,9 @@ namespace Envelop.App.Ultilities
             };
             S3Client = new AmazonS3Client(Configuration["AmazonS3:AccessKeyId"], Configuration["AmazonS3:SecretAccessKey"], amazonS3Config);
         }
+
         public async Task<(string? PublicResourceUrl, string? ErrorMessage)> SaveFileAmazonS3Async(IFormFile formFile, string bucketName, string filePath, S3CannedACL s3CannedACL)
         {
-
             try
             {
                 using (MemoryStream memoryStream = new())
@@ -69,12 +84,10 @@ namespace Envelop.App.Ultilities
             {
                 return (null, ex.GetBaseException().ToString());
             }
-
         }
 
         public async Task<(string? PublicResourceUrl, string? ErrorMessage)> SaveFileAmazonS3Async(byte[] byteFile, string bucketName, string filePath, S3CannedACL s3CannedACL)
         {
-
             try
             {
                 using (MemoryStream memoryStream = new(byteFile))
@@ -103,7 +116,6 @@ namespace Envelop.App.Ultilities
             {
                 return (null, ex.GetBaseException().ToString());
             }
-
         }
 
         public async Task<(string? PublicResourceUrl, string? ErrorMessage)> SaveFileAmazonS3Async(MemoryStream memoryStream, string bucketName, string filePath, S3CannedACL s3CannedACL)
@@ -134,6 +146,7 @@ namespace Envelop.App.Ultilities
                 return (null, ex.GetBaseException().ToString());
             }
         }
+
         public string? GetPath(string? resourceUrl)
         {
             try
@@ -187,14 +200,12 @@ namespace Envelop.App.Ultilities
             {
                 TransferUtilityUploadDirectoryRequest transferUtilityUploadDirectoryRequest = new()
                 {
-
                     Directory = folderPath,
                     BucketName = bucketName,
                     CannedACL = s3CannedACL,
                     SearchPattern = searchPattern,
                     SearchOption = searchOption,
                     KeyPrefix = keyPrefix
-
                 };
                 TransferUtility transferUtility = new(S3Client);
                 await transferUtility.UploadDirectoryAsync(transferUtilityUploadDirectoryRequest);
@@ -221,11 +232,13 @@ namespace Envelop.App.Ultilities
             };
             return S3Client.GetPreSignedURL(urlRequest);
         }
+
         // https://[REGION].amazonaws.com/[BUCKET-NAME]/[FILE-NAME].[FILE-TYPE] or https://s3.amazonaws.com/[BUCKET-NAME]/[FILE-NAME].[FILE-TYPE]
         public string GetPublicUrl(string publicDomain, string bucketName, string filePath)
         {
             return $"{publicDomain}/{bucketName}/{filePath}";
         }
+
         public async Task<(bool result, string? errorMessage)> DeleteResourceAsync(string? bucketName, string? filePath)
         {
             try
@@ -237,13 +250,13 @@ namespace Envelop.App.Ultilities
                 };
                 DeleteObjectResponse response = await S3Client.DeleteObjectAsync(objectDeleteRequest);
                 return (true, null);
-
             }
             catch (Exception ex)
             {
                 return (false, ex.GetBaseException().ToString());
             }
         }
+
         public async Task<(bool result, string? errorMessage)> DeleteMultipleResourceAsync(string bucketName, List<string> filePath)
         {
             try
@@ -262,6 +275,7 @@ namespace Envelop.App.Ultilities
                 return (false, ex.GetBaseException().ToString());
             }
         }
+
         private async Task<List<KeyVersion>> PutObjectsAsync(string? bucketName, List<string> keys)
         {
             List<KeyVersion> keyVersions = new();
@@ -281,6 +295,7 @@ namespace Envelop.App.Ultilities
             }
             return keyVersions;
         }
+
         public async Task<(string? resourceUrl, string? errorMessage)> UpdateResourceAsync(IFormFile fromFile, string bucketName, S3CannedACL s3CannedACL, string newFilePath, string? filePath = null)
         {
             try
@@ -330,6 +345,7 @@ namespace Envelop.App.Ultilities
                 return (null, ex.GetBaseException().ToString());
             }
         }
+
         public async Task<(string? resourceUrl, string? errorMessage)> UpdateResourceAsync(MemoryStream memoryStream, string bucketName, S3CannedACL s3CannedACL, string newFilePath, string? filePath = null)
         {
             try
@@ -354,6 +370,7 @@ namespace Envelop.App.Ultilities
                 return (null, ex.GetBaseException().ToString());
             }
         }
+
         public async Task<(string? resourceUrl, string? errorMessage)> UpdateResourceAsync(byte[] byteFile, string bucketName, S3CannedACL s3CannedACL, string newFilePath, string? filePath = null)
         {
             try
@@ -379,5 +396,4 @@ namespace Envelop.App.Ultilities
             }
         }
     }
-
 }

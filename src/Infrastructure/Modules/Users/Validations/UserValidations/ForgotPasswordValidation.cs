@@ -12,9 +12,9 @@ namespace Infrastructure.Modules.Users.Validations.UserValidations
         public ForgotPasswordValidation(IRepositoryWrapper repositoryWrapper)
         {
             RepositoryWrapper = repositoryWrapper;
-        
+
             RuleFor(x => x.Email)
-                .MustAsync(async(email, cancellationToken) => await RepositoryWrapper.Users.IsAnyValue(x=> x.EmailAddress == email)).WithMessage(Messages.Users.UserNameNotExist);
+                .MustAsync(async (email, cancellationToken) => await RepositoryWrapper.Users.IsAnyValue(x => x.EmailAddress == email)).WithMessage(Messages.Users.UserNameNotExist);
         }
     }
 }

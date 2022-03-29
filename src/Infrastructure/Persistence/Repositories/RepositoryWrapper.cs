@@ -21,6 +21,7 @@ public interface IRepositoryWrapper
 public class RepositoryWrapper : IRepositoryWrapper
 {
     private readonly ApplicationDbContext ApplicationDbContext;
+
     public RepositoryWrapper(ApplicationDbContext applicationDbContext) => ApplicationDbContext = applicationDbContext;
 
     private IRepositoryBase<User>? UsersRepositoryBase;
@@ -34,7 +35,7 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     private IRepositoryBase<UserPermission>? UserPermissionsRepositoryBase;
     public IRepositoryBase<UserPermission> UserPermissions => UserPermissionsRepositoryBase ??= new RepositoryBase<UserPermission>(ApplicationDbContext);
-    
+
     private IRepositoryBase<Role>? RolesRepositoryBase;
     public IRepositoryBase<Role> Roles => RolesRepositoryBase ??= new RepositoryBase<Role>(ApplicationDbContext);
 

@@ -1,4 +1,3 @@
-using Infrastructure.Modules.Users.Requests.UserPermissionRequests;
 using Microsoft.AspNetCore.Http;
 
 namespace Infrastructure.Modules.Users.Requests.UserRequests

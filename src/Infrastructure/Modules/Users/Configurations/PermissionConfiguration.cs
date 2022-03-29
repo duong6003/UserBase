@@ -1,5 +1,6 @@
-using Microsoft.EntityFrameworkCore;
 using Infrastructure.Modules.Users.Entities;
+using Microsoft.EntityFrameworkCore;
+
 namespace Infrastructure.Modules.Users.Configurations
 {
     public class PermissionConfiguration : IEntityTypeConfiguration<Permission>

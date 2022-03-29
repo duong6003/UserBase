@@ -15,10 +15,12 @@ namespace Web.Controllers.Users
     public class RolesController : BaseController
     {
         private readonly IRoleService RoleService;
+
         public RolesController(IRoleService roleService)
         {
             RoleService = roleService;
         }
+
         [HttpGet("{roleId}")]
         public async Task<IActionResult> Detail(Guid roleId)
         {
@@ -31,6 +33,7 @@ namespace Web.Controllers.Users
             }
             return Ok(role, Messages.Roles.GetDetailSuccessfully);
         }
+
         /// <summary>
         /// Upload Role
         /// </summary>
@@ -65,7 +68,6 @@ namespace Web.Controllers.Users
             (Role? Role, string? errorMessage) = await RoleService.UpdateAsync(role, request);
             return Ok(Role, Messages.Roles.UpdateRoleSuccessfully);
         }
-
 
         /// <summary>
         /// Delete Role

@@ -3,9 +3,7 @@ using Hangfire.MySql;
 using HangfireBasicAuthenticationFilter;
 using Infrastructure.Mappings;
 using Infrastructure.Modules.Users.Services;
-using Infrastructure.Modules.Users.Validations.UserValidations;
 using Infrastructure.Persistence.Contexts;
-using Infrastructure.Persistence.GlobalValidation;
 using Infrastructure.Persistence.Repositories;
 using Infrastructure.Persistence.ServiceHelpers.SendMailService;
 using Microsoft.AspNetCore.Builder;
@@ -38,12 +36,15 @@ public static class Startup
         services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
         services.AddAutoMapper(typeof(MappingProfile));
+
         #region Add Module Services
+
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<ISendEmail, SendEmail>();
         services.AddScoped<IPermissionService, PermissionService>();
-        #endregion
+
+        #endregion Add Module Services
 
         return services;
     }

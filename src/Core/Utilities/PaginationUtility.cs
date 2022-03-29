@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+
 //using MongoDB.Driver;
 using System.ComponentModel.DataAnnotations;
 
@@ -30,6 +31,7 @@ namespace Envelop.App.Ultilities
             List<T> items = await source.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
             return new PaginationUtility<T>(items, source.Count(), pageNumber, pageSize);
         }
+
         /*
         public static async Task<PaginationUtility<T>> ToPagedListAsync(IFindFluent<T, T> source, int pageNumber, int pageSize)
         {
@@ -43,8 +45,10 @@ namespace Envelop.App.Ultilities
     {
         [TypeInt32MinValueValidation(1, ErrorMessage = "PageSizeGreaterThanOrEqual1")]
         public int PageSize { get; set; } = int.MaxValue / 2;
+
         [TypeInt32MinValueValidation(1, ErrorMessage = "PageNumberGreaterThanOrEqual1")]
         public int PageNumber { get; set; } = 1;
+
         public string? OrderByQuery { get; set; } //Sample: "customerName desc, customerBirthday"
         public string? SearchContent { get; set; }
     }
@@ -52,10 +56,12 @@ namespace Envelop.App.Ultilities
     public class TypeInt32MinValueValidationAttribute : ValidationAttribute
     {
         private readonly int MinValue;
+
         public TypeInt32MinValueValidationAttribute(int minValue)
         {
             MinValue = minValue;
         }
+
         public override bool IsValid(object? value)
         {
             return Convert.ToInt32(value) >= MinValue;
@@ -88,7 +94,8 @@ namespace Envelop.App.Ultilities
         public bool HasNext { get; set; }
         public bool HasPrevious { get; set; }
 
-        public PageInfo() { }
+        public PageInfo()
+        { }
 
         public PageInfo(long totalCount, long pageSize, long currentPage, long totalPages, bool hasNext, bool hasPrevious)
         {

@@ -149,7 +149,7 @@ public class UserService : IUserService
 
     public async Task<(string AccesToken, string? ErrorMessage)> AuthenticateAsync(UserSignInRequest request)
     {
-        User? user = await RepositoryWrapper.Users.FindByCondition(x => x.UserName == request.UserName).FirstOrDefaultAsync()!;
+        User? user = await RepositoryWrapper.Users.FindByCondition(x => x.UserName == request.UserName || x.EmailAddress == request.UserName).FirstOrDefaultAsync()!;
 
         bool success = BCrypt.Net.BCrypt.Verify(request.Password, user!.Password);
         if (!success) return (null!, Messages.Users.PasswordNotMatch);

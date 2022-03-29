@@ -1,10 +1,13 @@
 using FluentValidation;
 using Infrastructure.Definitions;
-using Infrastructure.Modules.Users.Requests.UserPermissionRequests;
 using Infrastructure.Persistence.Repositories;
-
-namespace Infrastructure.Modules.Users.Validations.UserPermissionValidations
+namespace Infrastructure.Modules.Users.Requests.UserRequets
 {
+    public class CreateUserPermissionRequest
+    {
+        public Guid UserId { get; set; }
+        public string? Code { get; set; }
+    }
     public class CreateUserPermissionValidation : AbstractValidator<CreateUserPermissionRequest>
     {
         private readonly IRepositoryWrapper RepositoryWrapper;

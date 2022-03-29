@@ -1,11 +1,13 @@
 using FluentValidation;
 using Infrastructure.Definitions;
-using Infrastructure.Modules.Users.Requests.RoleRequests;
-using Infrastructure.Modules.Users.Validations.RolePermissionValidations;
 using Infrastructure.Persistence.Repositories;
-
-namespace Infrastructure.Modules.Users.Validations.RolesValidations
+namespace Infrastructure.Modules.Users.Requests.UserRequets
 {
+    public class UpdateRoleRequest
+    {
+        public string? Name { get; set; }
+        public IList<UpdateRolePermissionRequest>? RolePermissions { get; set; }
+    }
     public class UpdateRoleValidation : AbstractValidator<UpdateRoleRequest>
     {
         private readonly IRepositoryWrapper RepositoryWrapper;

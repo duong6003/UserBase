@@ -2,8 +2,8 @@
 using Hangfire;
 using Infrastructure.Definitions;
 using Infrastructure.Modules.Users.Entities;
-using Infrastructure.Modules.Users.Requests.UserPermissionRequests;
 using Infrastructure.Modules.Users.Requests.UserRequests;
+using Infrastructure.Modules.Users.Requests.UserRequets;
 using Infrastructure.Modules.Users.Services;
 using Infrastructure.Persistence.ServiceHelpers;
 using Infrastructure.Persistence.ServiceHelpers.SendMailService;

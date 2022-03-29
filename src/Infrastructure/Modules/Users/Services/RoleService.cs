@@ -2,7 +2,7 @@ using AutoMapper;
 using Envelop.App.Ultilities;
 using Infrastructure.Definitions;
 using Infrastructure.Modules.Users.Entities;
-using Infrastructure.Modules.Users.Requests.RoleRequests;
+using Infrastructure.Modules.Users.Requests.UserRequets;
 using Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Serilog;

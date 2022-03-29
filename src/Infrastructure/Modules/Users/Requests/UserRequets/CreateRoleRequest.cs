@@ -1,11 +1,15 @@
+
 using FluentValidation;
 using Infrastructure.Definitions;
-using Infrastructure.Modules.Users.Requests.RoleRequests;
-using Infrastructure.Modules.Users.Validations.RolePermissionValidations;
 using Infrastructure.Persistence.Repositories;
 
-namespace Infrastructure.Modules.Users.Validations.RolesValidations
+namespace Infrastructure.Modules.Users.Requests.UserRequets
 {
+    public class CreateRoleRequest
+    {
+        public string? Name { get; set; }
+        public ICollection<CreateRolePermissionRequest>? RolePermissions { get; set; }
+    }
     public class CreateRoleValidation : AbstractValidator<CreateRoleRequest>
     {
         private readonly IRepositoryWrapper RepositoryWrapper;

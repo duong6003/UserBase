@@ -2,7 +2,7 @@ using AutoMapper;
 using Envelop.App.Ultilities;
 using Infrastructure.Definitions;
 using Infrastructure.Modules.Users.Entities;
-using Infrastructure.Modules.Users.Requests.PermissionRequests;
+using Infrastructure.Modules.Users.Requests.UserRequets;
 using Infrastructure.Persistence.Repositories;
 
 namespace Infrastructure.Modules.Users.Services

@@ -1,7 +1,7 @@
 using Envelop.App.Ultilities;
 using Infrastructure.Definitions;
 using Infrastructure.Modules.Users.Entities;
-using Infrastructure.Modules.Users.Requests.PermissionRequests;
+using Infrastructure.Modules.Users.Requests.UserRequets;
 using Infrastructure.Modules.Users.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

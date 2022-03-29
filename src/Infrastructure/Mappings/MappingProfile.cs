@@ -1,10 +1,8 @@
 ﻿using AutoMapper;
 using Core.Utilities;
 using Infrastructure.Modules.Users.Entities;
-using Infrastructure.Modules.Users.Requests.RolePermissionRequests;
-using Infrastructure.Modules.Users.Requests.RoleRequests;
-using Infrastructure.Modules.Users.Requests.UserPermissionRequests;
 using Infrastructure.Modules.Users.Requests.UserRequests;
+using Infrastructure.Modules.Users.Requests.UserRequets;
 using Infrastructure.Persistence.Definitions;
 
 namespace Infrastructure.Mappings;

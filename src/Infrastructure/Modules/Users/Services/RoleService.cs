@@ -6,6 +6,7 @@ using Infrastructure.Modules.Users.Entities;
 using Infrastructure.Modules.Users.Requests.RoleRequests;
 using Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Infrastructure.Modules.Users.Services
@@ -31,6 +32,7 @@ namespace Infrastructure.Modules.Users.Services
     public interface IRoleService
     {
         Task<Role?> GetByIdAsync(Guid roleId);
+        Task<Role?> GetAllRolePermission(Role role);
 
         Task<(Role? Role, string? ErrorMessage)> GetDetailAsync(Guid roleId);
 
@@ -58,13 +60,15 @@ namespace Infrastructure.Modules.Users.Services
         {
             Role? role = Mapper.Map<Role>(request);
             await RepositoryWrapper.Roles.AddAsync(role);
-            return (role, null);
+            Role? newRole = await GetAllRolePermission(role);
+            return (newRole , null);
         }
 
         public async Task<(Role? Role, string? ErrorMessage)> DeleteAsync(Role role)
         {
             await RepositoryWrapper.Roles.DeleteAsync(role);
-            return (role, Messages.Roles.DeleteRoleSuccessfully);
+            Role? newRole = await GetAllRolePermission(role);
+            return (newRole, null);
         }
 
         public async Task<(PaginationResponse<Role>, string? ErrorMessage)> GetAllAsync(PaginationRequest request)
@@ -73,10 +77,17 @@ namespace Infrastructure.Modules.Users.Services
                 (
                     string.IsNullOrEmpty(request.SearchContent)
                     || x.Name!.ToLower().Contains(request.SearchContent!.ToLower())
-                )).Include(x => x.RolePermissions);
+                ));
             roles = SortUtility<Role>.ApplySort(roles, request.OrderByQuery!);
             PaginationUtility<Role>? data = await PaginationUtility<Role>.ToPagedListAsync(roles, request.PageNumber, request.PageSize);
             return (PaginationResponse<Role>.PaginationInfo(data, data.PageInfo), Messages.Roles.GetAllSuccessfully);
+        }
+
+        public async Task<Role?> GetAllRolePermission(Role role)
+        {
+            var newRolePermission = RepositoryWrapper.RolePermissions.FindByCondition(x => x.RoleId == role.Id);
+            role.RolePermissions = await newRolePermission.ToListAsync();
+            return role;
         }
 
         public async Task<Role?> GetByIdAsync(Guid roleId)
@@ -141,10 +152,11 @@ namespace Infrastructure.Modules.Users.Services
                 catch (Exception ex)
                 {
                     await RepositoryWrapper.RollbackTransactionAsync();
-                    BackgroundJob.Enqueue(() => Console.WriteLine($"--> Add new role permission failed: {ex.Message}"));
+                    Log.Error(ex, ex.GetBaseException().ToString());
                 }
             }
-            return (role, null);
+            Role? newRole = await GetAllRolePermission(role);
+            return (newRole, null);
         }
     }
 }

@@ -9,6 +9,7 @@ using System.Text.Encodings.Web;
 using Infrastructure.Persistence.ServiceHelpers.SendMailService;
 using Infrastructure.Persistence.ServiceHelpers;
 using Infrastructure.Modules.Users.Requests.UserPermissionRequests;
+using Envelop.App.Ultilities;
 
 namespace Web.Controllers.Users
 {
@@ -37,11 +38,20 @@ namespace Web.Controllers.Users
             }
             return Ok(user, Messages.Users.GetDetailSuccessfully);
         }
+        /// <summary>
+        /// Get All Users
+        /// </summary>
+        [HttpGet("GetAll")]
+        public async Task<IActionResult> GetAllAsync([FromQuery] PaginationRequest request)
+        {
+            (PaginationResponse<User> users, string? errorMessage) = await UserService.GetAllAsync(request);
+            return Ok(users, Messages.Users.GetAllSuccessfully);
+        }
         [HttpPost("{userId}/UserPermissions")]
         [AllowAnonymous]
         public async Task<IActionResult> AddUserPermission(Guid userId, [FromBody] List<CreateUserPermissionRequest> request)
         {
-            User? user = await UserService.GetByIdAsync(userId);
+            (User? user, string? e) = await UserService.GetDetailAsync(userId);
             if(user == null) return BadRequest(Messages.Users.IdNotFound);
             if (request.Any(x => x.UserId != user.Id)) return Ok(user, Messages.Users.UserIdInCorrect);
 
@@ -53,7 +63,7 @@ namespace Web.Controllers.Users
         [AllowAnonymous]
         public async Task<IActionResult> DeleteUserPermission(Guid userId, [FromBody] List<DeleteUserPermissionRequest> request)
         {
-            User? user = await UserService.GetByIdAsync(userId);
+            (User? user, string? e) = await UserService.GetDetailAsync(userId);
             if(user == null) return BadRequest(Messages.Users.IdNotFound);
             if (request.Any(x => x.UserId != user.Id)) return Ok(user, Messages.Users.UserIdInCorrect);
 
@@ -78,7 +88,7 @@ namespace Web.Controllers.Users
             return Ok(AccesToken, Messages.Users.LoginSuccess);
         }
         [HttpPut("{userId}")]
-        public async Task<IActionResult> Update(Guid userId, [FromBody] UserUpdateRequest request)
+        public async Task<IActionResult> Update(Guid userId, [FromForm] UserUpdateRequest request)
         {
             User? user = await UserService.GetByIdAsync(userId);
             if (user == null) return BadRequest(Messages.Users.IdNotFound);
@@ -86,7 +96,7 @@ namespace Web.Controllers.Users
             (User? newUser, string? errorMessage) = await UserService.UpdateAsync(user, request);
             if (errorMessage is not null) return BadRequest(errorMessage);
 
-            return Ok(newUser, Messages.Users.LoginSuccess);
+            return Ok(newUser, Messages.Users.UpdateUserSuccessfully);
         }
         [HttpDelete("{userId}")]
         public async Task<IActionResult> Delete(Guid userId)
@@ -118,7 +128,7 @@ namespace Web.Controllers.Users
         {
             return Ok(code ,await UserService.ConfirmResetPassword(userId, code, expireTime));
         }
-        [HttpPost("{userId}/{code}/resetbyconfirm}")]
+        [HttpPost("reserbyconfirm/{userId}/{code}")]
         [AllowAnonymous]
         public async Task<IActionResult> ResetPasswordByConfirm([FromQuery] Guid userId, [FromQuery] string code, ResetPasswordRequest request)
         {

@@ -21,11 +21,13 @@ public class MappingProfile : Profile
         CreateMap<UserUpdateRequest, User>().ForMember(dest => dest.UserPermissions, opt => opt.Ignore());
         CreateMap<UpdateUserPermissionRequest, UserPermission>();
         CreateMap<CreateUserPermissionRequest, UserPermission>();
+        CreateMap<DeleteUserPermissionRequest, UserPermission>();
         // role
         CreateMap<CreateRoleRequest,Role>();
         CreateMap<UpdateRoleRequest, Role>().ForMember(dest => dest.RolePermissions, opt => opt.Ignore());
 
         CreateMap<UpdateRolePermissionRequest, RolePermission>();
         CreateMap<CreateRolePermissionRequest, RolePermission>();
+
     }
 }

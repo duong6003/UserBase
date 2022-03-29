@@ -124,7 +124,7 @@ try
     })
     .AddFluentValidation(options =>
     {
-        options.RegisterValidatorsFromAssemblyContaining(typeof(RepositoryWrapper));
+        options.RegisterValidatorsFromAssemblyContaining(typeof(Startup));
     })
     .AddNewtonsoftJson(options =>
     {

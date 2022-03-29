@@ -5,17 +5,13 @@ using Infrastructure.Persistence.Repositories;
 
 namespace Infrastructure.Modules.Users.Validations.UserPermissionValidations
 {
-    public class CreateUserPermissionValidation : AbstractValidator<CreateUserPermissionRequest>
+    public class UpdateUserPermissionValidation : AbstractValidator<UpdateUserPermissionRequest>
     {
         private readonly IRepositoryWrapper RepositoryWrapper;
 
-        public CreateUserPermissionValidation(IRepositoryWrapper repositoryWrapper)
+        public UpdateUserPermissionValidation(IRepositoryWrapper repositoryWrapper)
         {
             RepositoryWrapper = repositoryWrapper;
-            RuleFor(x => x)
-                .MustAsync(async(per, cancellationToken) 
-                => !await RepositoryWrapper.UserPermissions.IsAnyValue(x => x.UserId == per.UserId && x.Code == per.Code))
-                .WithMessage(Messages.UserPermissions.UserPermissionIsExisted);
             RuleFor(x => x.UserId)
                 .NotNull().WithMessage(Messages.Users.IdIsRequired)
                 .MustAsync(async(userId, cancellationToken) => await RepositoryWrapper.Users!.IsAnyValue(x => x.Id == userId))

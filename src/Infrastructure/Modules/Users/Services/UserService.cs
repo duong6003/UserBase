@@ -11,6 +11,7 @@ using Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -34,6 +35,7 @@ public interface IUserService
     Task<(User? User, string? ErrorMessage)> DeleteAsync(User user);
     Task<(User User, string? ErrorMessage)> AddUserPermissionAsync(User user, List<CreateUserPermissionRequest> request);
     Task<(User User, string? ErrorMessage)> DeleteUserPermissionAsync(User user, List<DeleteUserPermissionRequest> request);
+    Task<User?> GetAllPermissionAsync(User user);
     Task<string> GenerateAccessTokenAsync(User user);
 
     Task<string> GenerateRefreshTokenAsync();
@@ -160,6 +162,7 @@ public class UserService : IUserService
         User? user = Mapper.Map<User>(request);
         List<UserPermission> rolePermissions = await RepositoryWrapper.RolePermissions.FindByCondition(x => x.RoleId == request.RoleId)
                 .Select(x => new UserPermission() { UserId = user.Id, Code = x.Code }).ToListAsync();
+        user.UserPermissions = new();
         user.UserPermissions!.AddRange(rolePermissions);
         await RepositoryWrapper.Users.AddAsync(user);
         return (user, null);
@@ -181,13 +184,15 @@ public class UserService : IUserService
     {
         List<UserPermission> newUserRolePermissions = Mapper.Map<List<UserPermission>>(request);
         await RepositoryWrapper.UserPermissions.AddRangeAsync(newUserRolePermissions);
-        return (user, null);
+        User? newUser = await GetAllPermissionAsync(user);
+        return (newUser!, null);
     }
     public async Task<(User User, string? ErrorMessage)> DeleteUserPermissionAsync(User user, List<DeleteUserPermissionRequest> request)
     {
         List<UserPermission> deletedUserRolePermissions = Mapper.Map<List<UserPermission>>(request);
         await RepositoryWrapper.UserPermissions.DeleteRangeAsync(deletedUserRolePermissions);
-        return (user, null);
+        User? newUser = await GetAllPermissionAsync(user);
+        return (newUser!, null);
     }
     public async Task<(User? User, string? ErrorMessage)> UpdateAsync(User user, UserUpdateRequest request)
     {
@@ -213,11 +218,12 @@ public class UserService : IUserService
             catch (System.Exception ex)
             {
                 await RepositoryWrapper.RollbackTransactionAsync();
-                BackgroundJob.Enqueue(() => Console.WriteLine($"--> Add new user permission failed: {ex.Message}"));
+                Log.Error(ex, ex.GetBaseException().ToString());
             }
         }
         await RepositoryWrapper.Users.UpdateAsync(user);
-        return (user, null);
+        User? newUser = await GetAllPermissionAsync(user);
+        return (newUser!, null);
     }
 
     public async Task<(User? User, string? ErrorMessage)> DeleteAsync(User user)
@@ -270,5 +276,12 @@ public class UserService : IUserService
         user.Password = newPassword;
         await RepositoryWrapper.Users.UpdateAsync(user);
         return (user, Messages.Users.UserResetSuccesfully);
+    }
+
+    public async Task<User?> GetAllPermissionAsync(User user)
+    {
+        var userPermisisons = RepositoryWrapper.UserPermissions.FindByCondition(x => x.UserId == user.Id);
+        user.UserPermissions = await userPermisisons.ToListAsync();
+        return user;
     }
 }

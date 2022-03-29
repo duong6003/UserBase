@@ -24,7 +24,7 @@ public interface IRepositoryBase<T> where T : class
     IQueryable<T> FindAll(bool isAsNoTracking = default);
 
     IQueryable<T> FindByCondition(Expression<Func<T, bool>> expression, bool isAsNoTracking = default);
-    Task<bool> IsAnyValue(Expression<Func<T, bool>> expression);
+    Task<bool> IsAnyValue(Expression<Func<T, bool>> expression, params object?[]? ignoreKeys);
 }
 
 public class RepositoryBase<T> : IRepositoryBase<T> where T : class
@@ -32,11 +32,16 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class
     private readonly ApplicationDbContext DbContext;
 
     public RepositoryBase(ApplicationDbContext dbContext) => DbContext = dbContext;
-    public async Task<bool> IsAnyValue(Expression<Func<T, bool>> expression)
+    public async Task<bool> IsAnyValue(Expression<Func<T, bool>> expression, params object?[]? ignoreKeys)
     {
+        if(ignoreKeys!.Any()){
+            List<T> items = FindByCondition(expression).ToList();
+            dynamic? entity = await DbContext.Set<T>().FindAsync(ignoreKeys);
+            if(items.FirstOrDefault()!.Equals(entity)) return false;
+            return items != null;
+        }
         return await DbContext.Set<T>().AnyAsync(expression);
     }
-
     public async Task AddAsync(T entity, CancellationToken cancellationToken = default)
     {
         await DbContext.Set<T>().AddAsync(entity, cancellationToken);

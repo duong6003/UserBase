@@ -9,6 +9,7 @@ using Infrastructure.Persistence.GlobalValidation;
 using Infrastructure.Persistence.Repositories;
 using Infrastructure.Persistence.ServiceHelpers.SendMailService;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,6 +35,7 @@ public static class Startup
         ));
 
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
+        services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
         services.AddAutoMapper(typeof(MappingProfile));
         #region Add Module Services

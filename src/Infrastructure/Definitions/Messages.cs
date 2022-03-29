@@ -101,11 +101,17 @@ public class Messages
     [DisplayName("Permissions")]
     public static class Permissions
     {
-        public const string IdNotFound = "Mes.Permissions.Id.NotFound";
-        public const string IdIsRequired = "Mes.Permissions.Id.IsRequired";
+        public const string CodeNotFound = "Mes.Permissions.Code.NotFound";
+        public const string CodeExisted = "Mes.Permissions.Code.Existed";
+        public const string CodeIsRequired = "Mes.Permissions.Code.IsRequired";
+        public const string CodeEmpty = "Mes.Permissions.Code.NameIsEmpty";
         public const string NameEmpty = "Mes.Permissions.Name.NameIsEmpty";
         public const string NameInValid = "Mes.Permissions.Name.InValid";
+        public const string UpdatePermissionSuccessfully = "Mes.Permissions.Update.Successfully";
+        public const string DeletePermissionSuccessfully = "Mes.Permissions.Delete.Successfully";
+        public const string CreateSuccessfully = "Mes.Permissions.Create.Successfully";
         public const string GetAllSuccessfully = "Mes.Permissions.GetAll.Successfully";
+        public const string GetDetailSuccessfully = "Mes.Permissions.GetDetail.Successfully";
 
     }
 }

@@ -11,23 +11,23 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Infrastructure.Modules.Users.Services
 {
-    //public class RolePermissionCompare : IEqualityComparer<RolePermission>
-    //{
-    //    public bool Equals(RolePermission? x, RolePermission? y)
-    //    {
-    //        return x!.RoleId == y!.RoleId && x.Code == y.Code;
-    //    }
+    public class RolePermissionCompare : IEqualityComparer<RolePermission>
+    {
+       public bool Equals(RolePermission? x, RolePermission? y)
+       {
+           return x!.RoleId == y!.RoleId && x.Code == y.Code;
+       }
 
-    //    public int GetHashCode([DisallowNull] RolePermission obj)
-    //    {
-    //        unchecked
-    //        {
-    //            if (obj == null)
-    //                return 0;
-    //            return obj.GetHashCode();
-    //        }
-    //    }
-    //}
+       public int GetHashCode([DisallowNull] RolePermission obj)
+       {
+           unchecked
+           {
+               if (obj == null)
+                   return 0;
+               return obj.GetHashCode();
+           }
+       }
+    }
 
     public interface IRoleService
     {
@@ -104,11 +104,22 @@ namespace Infrastructure.Modules.Users.Services
             }
             return (role, null);
         }
-
+        private List<RolePermission> GetDeleteRolePermission(List<RolePermission> sources, List<RolePermission> excepts)
+        {
+            var comparer = new RolePermissionCompare();
+            List<RolePermission> results = new();
+            sources.ForEach(source => {
+                if(!excepts.Any(except => comparer.Equals(except, source)))
+                {
+                    results.Add(source);
+                }
+            });
+            return results;
+        }
         public async Task<(Role? Role, string? ErrorMessage)> UpdateAsync(Role role, UpdateRoleRequest request)
         {
             //db role permission no tracking
-            var entities = RepositoryWrapper.RolePermissions.FindByCondition(x => x.RoleId == role.Id, isAsNoTracking: true);
+            var entities = await RepositoryWrapper.RolePermissions.FindByCondition(x => x.RoleId == role.Id, isAsNoTracking: true).ToListAsync();
 
             //add role permisstion
             var addedRolePermissionsReq = request.RolePermissions!.Where(x => entities.All(v => v.RoleId == x.RoleId && v.Code != x.Code));
@@ -118,17 +129,7 @@ namespace Infrastructure.Modules.Users.Services
             var updatedRolePermissions = Mapper.Map<List<RolePermission>>(updatedRolePermissionsReq);
 
             //get deleted role permissions
-            List<RolePermission> deletedRolePermissions = new();
-            foreach (var update in updatedRolePermissions)
-            {
-                foreach (var entity in entities)
-                {
-                    if (entity.RoleId == update.RoleId && entity.Code != update.Code)
-                    {
-                        deletedRolePermissions.Add(entity);
-                    }
-                }
-            }
+            List<RolePermission> deletedRolePermissions = GetDeleteRolePermission(entities, updatedRolePermissions);
             using var transaction = RepositoryWrapper.BeginTransactionAsync();
             {
                 try
